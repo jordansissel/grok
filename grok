@@ -43,6 +43,7 @@ my %MATCH = (
   INT => qr/$RE{num}{int}/,
   NUMBER => qr/$RE{num}{real}/,
   WORD => qr/\w+/,
+  NOTSPACE => qr/\S+/,
   DATA => qr/.*?/,
   GREEDYDATA => qr/.*/,
   QUOTEDSTRING => $RE{quoted},
@@ -313,13 +314,21 @@ sub pattern2regex {
   my $pattern = shift;
   my $regex = $pattern;
   my $orig = $pattern;
-  my $predicate_regex = qr,
+  my $predicate_regex = qr@
       (
        (?:(?:[<>]=?|==)[^%]+)
        |
        (?:~$RE{delimited}{-delim=>'/'})
       )(?{ $predicate = $^N })
-     ,x;
+     @x;
+
+  my $Xpredicate_regex = qr@
+      (
+       ((?:[<>]=?|==)[^%]+)(?{ $predicate = $^N })
+       |
+       (~$RE{delimited}{-delim=>'/'})(??{ "(?<=" . substr($^N, 1) . ")" })
+      )
+     @x;
 
   my $count;
   do {
@@ -338,7 +347,7 @@ sub pattern2regex {
                    (?:$predicate_regex)? # Post-match predicate
                   %
                  ,x;
-      $count += $regex =~ s/$re/($MATCH{$key})(?{ \$values{'$1'} = \$^N; \$predicates{'$1'} = '$predicate' })/g;
+      $count += $regex =~ s@$re@($MATCH{$key}(??{ "(?<=" . substr("$predicate",2,-1) . ")" if ($predicate =~ m,^/.*/\$,) }))(?{ \$values{'$1'} = \$^N; \$predicates{'$1'} = '$predicate' })@g;
     }
     $rounds++;
     if ($rounds > 20) {
