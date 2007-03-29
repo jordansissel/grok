@@ -1,0 +1,60 @@
+Changes since 20070224:
+
+  New pattern predicates:
+    Operators: < > = <= >= ~
+    Example:
+      %NUMBER<20%
+      %IP~/^192\./%
+      %HOSTNAME~/google.com/%
+    For more info see:  http://www.semicomplete.com/blog/geekery/grok-pattern-predicates.html
+
+Changes since 1.1 (2006/03/31)
+
+  Patterns added or changed:
+    - USERNAME pattern changed from \w+ to [a-zA-Z0-9_-]+
+    - NUMBER
+    - PROG matches \w+
+    - MAC (mac address)
+    - PID
+    - DATA matches .* (useful for general wildcard capturing)
+    - IPORHOST
+    - SYSLOGPROG matches 'sshd[424]' type strings
+    - HTTPDATE
+    - QUOTEDSTRING
+    - QS (QUOTEDSTRING shortcut)
+    - SYSLOGBASE matches everything syslog normally logs before the actual message.  - APACHELOG matches a standard apache log entry
+
+  Filters added or changed:
+    - e[...] fixed to work properly
+    - strftime("string format") added. Same date formats as strftime(3) but use & instead of %
+    - uid2user added. Looks up a username by uid.
+    - urlescape added. calls uri_escape()
+    - ip2host added. Standard dns lookup.
+    - httpfilter added. Turns "GET /path HTTP/1.0" to "/path"
+
+  New features:
+    - New -m and -r options for using grok from the commandline only. Specify the match
+      with -m and the printing reaction with -r. See:
+      http://www.semicomplete.com/blog/geekery/grok-like-grep.html
+
+    - fancier syslog options:
+      match_syslog = 1; prefixes any match with '%SYSLOGDATE% %HOST% %SYSLOGPROG%:'
+      syslog_prog = "foo"; changes %PROG% in the above to be 'foo'
+      syslog_host = "bar"; changes %HOST% in the above to 'bar'
+
+    - Added more code tests:
+      Test for -m and -r in place.
+      Test for 'catlist' in place.
+      Test for threshold hit inplace.
+      Better testing framework made.
+
+  Contributed features: (Thanks to Canaan Silberberg)
+    - filelist type (like file and exec). comma-separated list of files that will
+      be individually handled as if they were all invoked as 'file' entries.
+
+    - catlist type. Same as 'filelist' but cats the files intead of 'tail -0f'ing them.
+
+    - filecmd type (like file and exec). This will execute the given command and
+      expect a list of files in return, then use those files as if you had
+      specified them in a filelist
+

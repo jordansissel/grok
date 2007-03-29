@@ -1,0 +1,49 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use Symbol;
+use Data::Dumper;
+
+# pragma - allow (?{ code }) assertions in
+# dynamically generated regexen.
+use re 'eval';
+
+# Things you'll need to have installed:
+use Parse::RecDescent;
+
+my $grammar = << 'GRAMMAR';
+<autotree>
+config: (ignorable | file)(s) /\Z/ { $return = $item[1] }
+ignorable: (comment | blankline)(s)
+comment: /#[^\n]*/
+blankline: /^\s+?\n/
+
+string: /"([^"]+)"/ { $return = $1 }
+number: /\d+/
+
+file: 'file' filename '{' file_entry(?) '}' ';' { $return = { file => $item[2], entry => $item[4] } }
+filename: string
+file_entry: (file_entry_line | ignorable)(s) { $return = $item[1] }
+file_entry_line: (syslog | type) ';' { print "\n"; $return = $item[1] }
+
+syslog: 'syslog' '=' number { print "Syslog: $item[3]\n"; $return = { "syslog" => $item[3] } }
+
+type: 'type' typename '{' type_entry '}' { $return = { "name" => $item[2], "conf" => $item[4] } }
+typename: string
+type_entry: (((match | threshold | interval | reaction) { $return = $item[1]; } ';') | ignorable)(s)
+
+match: 'match' '=' string { print "Match: $item[3]\n"; $return = { match => $item[3] } }
+threshold: 'threshold' '=' number { print "Threshold: $item[3]\n"; $return = { threshold => $item[3] } }
+interval: 'interval' '=' number { print "Interval: $item[3]\n"; $return = { interval => $item[3] } }
+reaction: 'reaction' '=' string { print "Reaction: $item[3]\n"; $return = { reaction => $item[3] } }
+GRAMMAR
+
+my $parser = Parse::RecDescent->new($grammar);
+my $config;
+open(CONFIG, "logwatch.conf") or return;
+undef $/;
+$config = $parser->config(<CONFIG>);
+close(CONFIG);
+
+print Dumper($config);

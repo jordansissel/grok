@@ -1,0 +1,6 @@
+"double quote"
+'single quote'
+stuff and 'then a quote'
+foo bar "baz fizz" fizzle
+test "test \" pants"
+'test \' foo bar'

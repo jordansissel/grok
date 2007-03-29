@@ -1,0 +1,77 @@
+# Logwatch.conf
+
+patterns {
+	COMMANDSTRING = ".*";
+	TTY = "/dev/tty[qp][a-z0-9]";
+};
+
+file "/var/log/auth.log" {
+	type "ssh-illegal-user" {
+		match = "Illegal user %USERNAME% from %IP%";
+		key = "%IP%";
+		#reaction = "echo pfctl -t whores -T add %IP%";
+		reaction = { 
+			my $user = $v->{"USERNAME"};
+			$d->{"count"}->{$user}++;
+			main::debug(0, sprintf("Login attempt %d as %s from %s", 
+								  $d->{"count"}->{$user},
+								  $user,
+								  $v->{"IP"}
+								  )
+					);
+		};
+	};
+
+	type "ssh-scan-possible" {
+		match = "Did not receive identification string from %IP%";
+		threshold = 4;
+		interval = 60;
+		#reaction = "echo pfctl -t whores -T add %IP%";
+	};
+};
+
+# Example using 'exec' - let's grok tcpdump for fun and profit.
+#exec "tcpdump -li xe0 -n 2> /dev/null" {
+#	type "ssh-connect" {
+#	match = "%IP:SRC%.\d+ > %IP:DST%.22: S";
+#		reaction = "echo 'SSH connect(): %IP:SRC% -> %IP:DST%'";
+#	};
+#	type "port-scan" {
+#		match = "%IP:SRC%.%PORT% > %IP:DST%.%PORT:DST%: S";
+#		key = "%IP:SRC%";
+#		threshold = 30;
+#		interval = 5; 
+#		reaction = "echo 'Port scan from %IP:SRC%'";
+#	};
+#};
+
+file "/var/log/auth.log" {
+	syslog = 1;
+	type "ssh-illegal-user" {
+		match = "Illegal user %USERNAME% from %IP%";
+		reaction = {
+			print "Hello";
+		};
+	};
+};
+
+file "/var/log/messages" {
+	syslog = 1;
+	type "sudo access" {
+		match = "sudo:  %USERNAME%.*?COMMAND=%COMMANDSTRING%$";
+		key = "%USERNAME%";
+	};
+
+	type "su(1) failure" {
+		match = "BAD SU %USERNAME:FROM% to %USERNAME:TO% on %TTY%";
+		reaction = {
+			# Somehow say "record FROM's attempt to su to TO"?
+			debug(0, sprintf("su(1) failure: %s -> %s (on %s)", 
+								  $v->{"USERNAME:FROM"},
+								  $v->{"USERNAME:TO"},
+								  $v->{"TTY"}
+								 )
+				  );
+		};
+	};
+};

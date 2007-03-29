@@ -1,0 +1,9 @@
+# Shell quoting test
+
+exec "cat input/matchtest" {
+	type "foo" {
+		match = "^[a-z]+";
+		match = "[a-z]+$";
+		reaction = 'echo "%=MATCH%"';
+	};
+};

@@ -1,0 +1,12 @@
+# Shell quoting test
+
+filters {
+  /reverse/ = { reverse };
+};
+
+catlist "input/addfilter" {
+  type "foo" {
+    match = ".*";
+    reaction = 'echo "%=LINE|reverse%"';
+  };
+};

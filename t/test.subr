@@ -1,0 +1,27 @@
+#!/bin/sh
+
+rungrok() {
+  perl ../grok -f conf/$1
+}
+
+try() {
+  OUTPUT=`mktemp /tmp/logwatcher.test.XXXXX`
+  rungrok "$@" > $OUTPUT 2> /dev/null
+  GOODOUTPUT=`echo $* | tr ' ' .`
+  compare $OUTPUT output/$GOODOUTPUT
+  EXITCODE=$?
+  [ "$EXITCODE" -eq 0 ] && echo "Test OK: $1" || echo "Test failed: $1"
+  return $EXITCODE
+}
+
+try_self() {
+  # $1 =~ should be test_*.sh
+  SELF=$1
+  TESTNAME=`echo "$SELF" | sed -e 's/^test_//; s/\.sh$//;'`
+  try $TESTNAME
+}
+
+compare() {
+  diff -u $1 $2 > /tmp/output
+  return $?
+}

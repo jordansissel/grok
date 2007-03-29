@@ -1,0 +1,14 @@
+# Shell quoting test
+
+patterns {
+	DATE = "[^]]+";
+	URL = "\S+";
+	REFERRER = "[^\"]+";
+};
+
+exec "cat input/customquoting" {
+	type "foo" {
+		match = ".*";
+		reaction = 'echo "%=LINE|e[abcdefg]%"';
+	};
+};

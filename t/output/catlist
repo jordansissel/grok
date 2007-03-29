@@ -1,0 +1,9 @@
+cat input/catlist.1: 1
+cat input/catlist.2: 2
+cat input/catlist.3: 3
+cat input/catlist.4: 4
+cat input/catlist.5: 5
+cat input/catlist.6: 6
+cat input/catlist.7: 7
+cat input/catlist.8: 8
+cat input/catlist.9: 9

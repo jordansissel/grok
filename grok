@@ -1,0 +1,693 @@
+#!/usr/bin/perl
+# grok is released under the Creative Commons Attribution 2.5 License
+# If you care, an overview of this license (and the legalese) is at:
+# http://creativecommons.org/licenses/by/2.5/
+#
+# Email jls@csh.rit.edu if you have any problems or questions with using grok.
+
+use strict;
+use warnings;
+use Data::Dumper;
+use IO::Select;
+use Getopt::Std;
+use POSIX qw(setsid strftime);
+use Memoize;
+use Socket;
+
+# For older versions of perl.. but do I really care that much?
+use Symbol;
+
+# allow (?{ code }) zero-width assertions in dynamically generated regexen.
+# This let's me do named captures with $^N
+use re 'eval';
+
+# Things you'll need to have installed (from CPAN):
+use URI::Escape;
+use Regexp::Common qw(RE_ALL);
+use Parse::RecDescent;
+use Date::Parse;
+use Unix::Syslog qw(:macros :subs);
+
+# Memoization of pattern2regex increases speed by a factor of 2.5
+memoize('pattern2regex');
+
+my @logrefs;
+my $debuglevel = 0;
+
+my $PATTERNS;
+
+# Pattern-space wildcards, used as %WILDCARD% in the pattern config
+my %MATCH = (
+  USERNAME => qr/[a-zA-Z0-9_-]+/,
+  USER => "%USERNAME%",
+  INT => qr/$RE{num}{int}/,
+  NUMBER => qr/$RE{num}{real}/,
+  WORD => qr/\w+/,
+  DATA => qr/.*?/,
+  GREEDYDATA => qr/.*/,
+  QUOTEDSTRING => $RE{quoted},
+
+  # Networking
+  MAC => qr/(?:%CISCOMAC%|%WINDOWSMAC%|%COMMONMAC%)/,
+  CISCOMAC => qr/(?:(?:[A-Fa-f0-9]{4}\.){2}[A-Fa-f0-9]{4})/,
+  WINDOWSMAC => qr/(?:(?:[A-Fa-f0-9]{2}-){5}[A-Fa-f0-9]{2})/,
+  COMMONMAC => qr/(?:(?:[A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2})/,
+  IP => $RE{net}{IPv4},
+  HOSTNAME => qr/$RE{net}{domain}{-nospace}/,
+  HOST => "%HOSTNAME%",
+  IPORHOST => "(?:%IP%|%HOSTNAME%)",
+
+  # Months: January, Feb, 3, 03, 12, December
+  MONTH => qr/\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?|0?[0-9]|1[0-2])\b/,
+  MONTHDAY => qr/(?:(?:[0-2]?[0-9])|3[01])/,
+
+  # Days: Monday, Tue, Thu, 0 (Sunday?), 6 (Saturday?)
+  DAY => qr/(?:Mon(?:day)?|Tue(?:sday)?|Wed(?:nesday)?|Thu(?:rsday)?|Fri(?:day)?|Sat(?:urday)?|Sun(?:day)?|[0-6])/,
+
+  # Years?
+  YEAR => qr/%INT%/,
+  # Time: HH:MM:SS
+  TIME => qr/\d{2}:\d{2}(?::\d{2})?/,
+
+  # Syslog Dates: Month Day HH:MM:SS
+  SYSLOGDATE => "%MONTH% +%MONTHDAY% %TIME%",
+  PROG => "%WORD%",
+  PID => "%INT%",
+  SYSLOGPROG => qr/%PROG%(?:\[%PID%\])?/,
+  HTTPDATE => qr,%MONTHDAY%/%MONTH%/%YEAR%:%TIME% %INT:ZONE%,,
+
+  # Shortcuts
+  QS => "%QUOTEDSTRING%",
+
+  # Log formats
+  SYSLOGBASE => "%SYSLOGDATE% %HOSTNAME% %SYSLOGPROG%:",
+  APACHELOG => "%IPORHOST% %USER:IDENT% %USER:AUTH% \\[%HTTPDATE%\\] %QS:URL% %NUMBER:RESPONSE% %NUMBER:BYTES% %QS:REFERRER% %QS:AGENT%",
+);
+
+# Dispatch table for filter chains.
+# shnq - escaping for use in non-quoted shell context
+# shdq - escaping for use in double-quoted shell strings
+# e[XYZ] - generic escaping, will escape the characters inside the brackets.
+# stripquotes - strip leading and trailing quotes.
+# parsedate - convert time values
+# uid2user - uid lookups for usernames
+my $filters = {
+  qr/shnq/ => sub { s/([`^()&{}[\]\$*?!|;'"\\])/\\$1/g; $_ },
+  qr/shdq/ => sub { s/([\\`\$"])/\\$1/g; $_ },
+  qr/e\[((?:(?:\\])|(?:[^\]]))*)\]/ => sub { s/([$^N])/\\$1/g; $_ },
+  #qr/e(.)((??{"([^$1]+)"}))$1/ => sub { print STDERR " foo '$1'\n"; return 1 },
+
+  qr/stripquotes/ => sub { s/^(['"])//; s/$2$//; $_ },
+  qr/parsedate/ => sub { str2time($_) },
+  qr/strftime\(($RE{quoted})\)/ => sub { 
+      my $m = substr($^N, 1, -1);
+      $m =~ s/\&/%/g;
+      POSIX::strftime($m, localtime($_)) 
+  },
+  qr/uid2user/ => sub { ($_) = getpwuid($_); $_ },
+  qr/urlescape/ => sub { uri_escape($_) },
+  qr/ip2host/ => sub { my ($host) = gethostbyaddr(inet_aton($_), AF_INET); $host || $_ },
+  qr/httpfilter/ => sub { s/^\S+ (\S+) \S+$/$1/; $_ },
+};
+
+my $opts = {};
+getopt('fdbm:r:P:', $opts);
+
+if (exists($opts->{"P"})) {
+  print pattern2regex($opts->{"P"}) . "\n";
+  exit(0);
+}
+
+if (exists($opts->{"d"})) {
+  # default to debuglevel 1 if -d has no arguments.
+  $debuglevel = $opts->{"d"} || 1;
+  debug(1, "Debug level: $debuglevel");
+}
+
+if (exists($opts->{"b"})) {
+  print STDERR "Going to background...\n";
+  exit if (fork() != 0); # Kill the parent
+
+  # Break away from the terminal, if any.
+  die "Cannot detach from terminal (setsid failed)" unless POSIX::setsid();
+  #chdir("/");
+  umask(0);
+
+  # Redirect stdin/stdout/stderr to /dev/null
+  map { close($_) } (\*STDIN,\*STDOUT,\*STDERR);
+  open(STDIN, "+>/dev/null");
+  open(STDOUT, "+>&STDIN");
+  open(STDERR, "+>&STDIN");
+
+  # Change ps output to something reasonable?
+  #$0 = "grok " . join(" ",@ARGV);
+}
+
+# Syslog to stderr, too, if we aren't going to the background.
+my $logopts = LOG_PID;
+openlog("grok", $logopts, LOG_USER);
+
+my $config = readconfig($opts->{"f"});
+#print Dumper($config);
+unless (defined($config)) {
+  debug(0, "Syntax error in config?");
+  exit(1);
+}
+setup($config);
+
+my $state;
+my $storage; # Match-level storage by File/Key
+my $select = IO::Select->new();
+
+my $TAIL = "tail -0f";
+foreach (keys(%$config)) {
+  next if ($_ eq "patterns");
+  my $s = Symbol::gensym;
+  my $command = $_;
+
+  # Run 'file' types as 'tail -0 -f [file]'
+  $state->{"orig"}->{$s} = $_;
+  $command = "$TAIL '$_'" if ($config->{$_}->{"type"} eq 'file');
+
+  debug(2, "Startup: Running $command");
+  open($s, "$command |") or die($!);
+  $select->add($s);
+  $state->{"map"}->{$s} = $_;
+  (undef, $state->{"inode"}->{$s}) = stat($state->{"orig"}->{$s});
+}
+
+# Loop for data for as long as our love shall last...
+while($select->count()) {
+  my @ready = $select->can_read(60);
+  map(readlog($_), @ready);
+
+  # XXX: Look at all 'file' types. If the inode number changes, then reopen?
+  foreach ($select->handles) {
+    last;; #XXX: CHANGE THIS
+    my $inode;
+    (undef, $inode) = stat($state->{"orig"}->{$_});
+    if ($inode != $state->{"inode"}->{$_}) {
+      ## XXX RE OPEN FILE
+      close($_);
+      $select->remove($_);
+
+      open($_, "$TAIL '" . $state->{"orig"}->{$_} . "' |");
+      $select->add($_);
+    }
+  }
+}
+
+debug(1, "Nothing left to do (all files/execs ended) exiting");
+exit(0);
+
+sub debug {
+  my ($level, $msg) = @_;
+  $msg =~ s/[^\n]$/$&\n/s; # Add a newline if there isn't one.
+  if ($level <= $debuglevel) {
+    printf STDERR ("%s: [debug%d] %s", $0, $level, $msg);
+    syslog(LOG_INFO, "%s", $msg);
+  }
+}
+
+sub readlog {
+  my $logh = shift;
+  my $buffer = $state->{"buffers"}->{$logh} || "";
+  my $bytes = sysread($logh, $buffer, 1024, length($buffer));
+  if ($bytes == 0) {
+    debug(1,"finished (possibly unexpected eof?): " . $state->{"map"}->{$logh});
+    $select->remove($logh);
+    close($logh);
+  }
+  while ($buffer =~ s!(.*)\n!!) {
+    #print $state->{"map"}->{$logh} . "> $1\n";
+    handle($state->{"map"}->{$logh},$1);
+  }
+  $state->{"buffers"}->{$logh} = $buffer;
+}
+
+sub handle {
+  my ($log,$line,$syslogmode) = @_;
+  chomp($line);
+  my $matched = 0;
+  #print $log . "> " . $line;
+
+  $storage->{$log} = {} if (!exists($storage->{$log}));
+
+  my $last = { line => $line };
+
+  #debug(0, "Syslog: ($log) ".$config->{$log}->{"syslog"});
+
+  if ($config->{$log}->{"syslog"}) {
+    # Syslog repetition message looks like this:
+    # last message repeated N times
+    if ($line =~ m/last message repeated (\d+) times$/) {
+      my $c = $1;
+      my $lastline = $state->{"last"}->{$log};
+      if (defined($lastline)) {
+        handle($log, $lastline, 1) while ($c-- > 0);
+      } else {
+        debug(1, "Cannot repeat 'last' line $c times becuase I haven't seen the previous line. ($log)");
+      }
+    }
+  }
+
+  my $patterns = $PATTERNS->{$log};
+  foreach my $pattern (keys(%{$patterns})) {
+    # "fix" the line, turn it into a regex.
+    my $regex = pattern2regex($pattern);
+
+    # The regex match will store keys in this hash
+    # XXX: This used to work with 'my' instead of 'our' - I'm not sure why.
+    our %values = ();
+    our %predicates = ();
+    debug(5, "Line: $line");
+    debug(5, "Regex: $regex");
+    debug(5, "Is Match: " . ($line =~ m/$regex/));
+    if ($line =~ m/($regex)/) {
+      debug(5, "Predicates for: " . keys(%predicates));
+      next unless check_predicates(\%predicates, \%values);
+      $matched++;
+
+      # Set some other magic entries to %values
+      $values{'=FILE'} = $log;
+      $values{'=LINE'} = $line;
+      $values{'=MATCH'} = $1;
+
+      # Handle if we're over the threshold
+      my $pat = $PATTERNS->{$log}->{$pattern};
+      my $fileconf = $config->{$log}->{"types"}->{$pat};
+      my $keyname;
+
+      $keyname = $pat . "::" . meta2string($fileconf->{"key"}, \%values) if (exists($fileconf->{"key"}));
+      $keyname ||= join (",", $pat, map { "$_=>$values{$_}" } keys(%values));
+
+      debug(3, "UniqueKey: $keyname");
+      $state->{$keyname}->{"time"} ||= time();
+      $state->{$keyname}->{"count"}++;
+
+      if ($state->{$keyname}->{"count"} >= $fileconf->{"threshold"})  {
+        if ($fileconf->{"interval"} == 0
+           || ((time() - $state->{$keyname}->{"time"}) <= $fileconf->{"interval"})) {
+          debug(2, "Limits (threshold/interval) exceeded for rulekey: $keyname");
+          react($fileconf, \%values, $log, $keyname);
+        } else { 
+          $state->{$keyname}->{"time"} = time();
+        }
+        $state->{$keyname}->{"count"} = 0;
+      }
+      $last->{"values"} = \%values;
+      $last->{"handler"} = $PATTERNS->{$log}->{$pattern};
+    }
+  }
+
+  # If we haven't matched this line yet, call the 'unmatched' handler?
+  if ($matched == 0) {
+    my $fileconf = $config->{$log}->{"unmatched"};
+    react($fileconf, { "=LINE" => $line }, $log, "unmatched") if (defined($fileconf));
+  }
+
+  $state->{"last"}->{$log} = $last unless ($syslogmode);
+}
+
+sub pattern2regex {
+  my $pattern = shift;
+  my $regex = $pattern;
+  my $orig = $pattern;
+  my $predicate_regex = qr,
+      (
+       (?:(?:[<>]=?|==)[^%]+)
+       |
+       (?:~$RE{delimited}{-delim=>'/'})
+      )(?{ $predicate = $^N })
+     ,x;
+
+  my $count;
+  do {
+    my $rounds = 0;
+    $count = 0;
+    # Replace %KEY:SUBNAME% with a regex and store the capture as KEY:SUBNAME
+    # The :SUBNAME specification is optional, 
+    # ie; %IP% is valid, as is %IP:FOO%
+    for my $key (keys(%MATCH)) {
+      my $predicate = "";
+      my $re = qr,%
+                   (
+                    (?:$key)                # Pattern name
+                    (?::\w+)?             # Pattern subname
+                   )
+                   (?:$predicate_regex)? # Post-match predicate
+                  %
+                 ,x;
+      $count += $regex =~ s/$re/($MATCH{$key})(?{ \$values{'$1'} = \$^N; \$predicates{'$1'} = '$predicate' })/g;
+    }
+    $rounds++;
+    if ($rounds > 20) {
+      debug(0, "Deep recursion translating '$orig'");
+      last;
+    }
+  } while ($count > 0);
+
+  return $regex;
+}
+
+sub meta2string {
+  my $meta = shift;
+  my $values = shift;
+  my $orig = $meta;
+
+  my $rounds = 0;
+  my $count;
+  do {
+    $count = 0;
+    #map { $count += $meta =~ s/%($_)%/$values->{$_}/g; } keys(%MATCH);
+
+    # XXX: This will be undef if the key in $values is null, should that ever happen?
+    map {
+      my $regex = qr/%(\Q$_\E(?::\w+)?)(?:\|((?:[^,|%]+)(?:[,|][^,|%]+)*))?%/;
+      while ($meta =~ m/$regex/) {
+        $count++;
+        my $data = filter($values, $1, $2);
+        $meta =~ s/$regex/$data/;
+      }
+    } (keys(%MATCH), '=LINE', '=MATCH', '=FILE');
+    $rounds++;
+    if ($rounds > 20) {
+      debug(0, "Deep recursion translating '$orig'");
+      last;
+    }
+  } while ($count > 0);
+
+  return $meta;
+}
+
+# XXX: There may be some performance issues in this function
+sub filter {
+  my ($values, $key, $opts) = @_;
+  my $ret = $values->{$key};
+  $opts = "" unless (defined($opts));
+
+  # Wrapper function to call a dispatch function and set $_
+  local *w = sub { 
+    debug(0, "No filter matches $_[0]") and return unless defined($filters->{$_[0]});
+    local $_ = $_[1];
+    $_ = $filters->{$_[0]}->($_[1]);
+    return $_;
+  };
+
+  # Apply filters in sequence until we run out of filters to apply.
+  my $re = join("|", map { qr/(?:$_)/ } keys(%$filters));
+  while ($opts =~ s/^$re//) {
+    my ($key) = grep { $& =~ m/$_/ } keys(%$filters);
+    $ret = w($key, $ret);
+    last unless $opts =~ s/^\|//;
+  }
+  debug(1, "Remaining filters (should be empty): '$opts'\n");
+
+  return $ret;
+}
+
+sub readconfig {
+  my $cfname = shift || "grok.conf";
+  debug(2, "Reading from $cfname");
+  my $grammar = << 'GRAMMAR';
+config: <rulevar: local $config = { }>
+config: (file | filelist | filecmd | pattern | filter | ignorable )(s) /\Z/ { $return = $config }
+ignorable: (comment | blankline)(s)
+comment: /#[^\n]*/
+blankline: /^\s*\n/
+
+#error: /^[^\Z\n]/ { main::debug(0, "Error on line: $thisline ? (missing a semicolon perhaps?)"); }
+
+string: /((?:\")(?:[^\\\"]*(?:\\.[^\\\"]*)*)(?:\")|(?:\')(?:[^\\\']*(?:\\.[^\\\']*)*)(?:\')|(?:\`)(?:[^\\\`]*(?:\\.[^\\\`]*)*)(?:\`))/ { $return = substr($item[1],1,-1) }
+#string: <perl_quotelike> { $return = $item[1]->[2] }
+number: /\d+/
+word: /\w+/
+perlblock: <perl_codeblock>
+
+pattern: <rulevar: local $pattern = { }>
+pattern: 'patterns' '{' (pattern_entry)(s) '}' ';' { main::addpatterns($pattern) }
+pattern_entry: pattern_name '=' pattern_string ';' { $pattern->{$item[1]} = $item[3] }
+pattern_name: word
+pattern_string: string
+
+filter: <rulevar: local $filter = { }>
+filter: 'filters' '{' (filter_entry | ignorable)(s?) '}' ';' { main::addfilters($filter) }
+filter_entry: filter_name '=' filter_string ';' { $filter->{$item[1]} = $item[3] }
+filter_name: <perl_quotelike> { $return = $item[1]->[2] }
+filter_string: perlblock
+
+file: <rulevar: local $file = { }>
+file: filespec string '{' file_entry(?) '}' ';' { $config->{$item[2]} = $file }
+filespec: ('file' | 'exec') { $file->{'type'} = $item[1] }
+file_entry: (file_entry_line | ignorable)(s)
+file_entry_line: (syslog | type | unmatched) ';'
+
+filecmd: <rulevar: local $cmd>
+filecmd: <rulevar: local @filelist>
+filecmd: 'filecmd' /" */ filecmdstr
+filecmdstr: /.*(?=\s*")+/
+{
+    local $/ = "\n";
+    open($cmd, $item[1] ." |");
+    push(@filelist, $_) while <$cmd>;
+    chomp(@filelist);
+
+    $text = "filelist \"" .join(',', @filelist) .$text;
+}
+
+filelist: <rulevar: local @files>
+filelist: <rulevar: local $file = { }>
+filelist: ('filelist'|'catlist') string '{' file_entry(?) '}' ';'
+{
+  for (split(/\s*,\s*/, $item[2])) {
+    for (sort(glob($_))) {
+      if ($item[1] eq 'filelist') {
+        $file->{'type'} = "file";
+      } else {
+        $file->{'type'} = "exec";
+        $_ = "cat $_";
+      }
+      $config->{$_} = $file;
+    }
+  }
+}
+
+syslog: 'syslog' '=' number { $file->{"syslog"} = $item[3] }
+type: <rulevar: local $type = { }>
+type: 'type' typename '{' type_entry '}' { $file->{"types"}->{$item[2]} = $type }
+typename: string
+type_entry: (((match | threshold | interval | reaction | key | match_syslog | syslog_prog | syslog_host) ';') | ignorable)(s)
+
+match: 'match' '=' string { push(@{$type->{"matches"}},$item[3]) }
+threshold: 'threshold' '=' number { $type->{"threshold"} = $item[3] }
+interval: 'interval' '=' number { $type->{"interval"} = $item[3] }
+key: 'key' '=' string { $type->{"key"} = $item[3] }
+reaction: 'reaction' '=' reactionspec { push(@{$type->{"reactions"}}, $item[3]) }
+# Let users change the reaction prog.
+#reaction_prog: 'reaction_prog' '=' 
+reactionspec: string { $return = { type => "command", string => $item[1] } } 
+          | perlblock {
+            my $func = 'package main; $func = sub ' . $item[1];
+            $func =~ s/{/{ my (\$d,\$v,\$s) = \@_;/;
+            eval($func);
+            print STDERR "PERL SYNTAX ERROR IN CONFIG:\n$@\n" if $@;
+            $return = { type => "perl", string => $func } 
+          }
+
+match_syslog: 'match_syslog' '=' number { $type->{"match_syslog"} = $item[3] }
+syslog_prog: 'syslog_prog' '=' string { $type->{"syslog_prog"} = $item[3] }
+syslog_host: 'syslog_host' '=' string { $type->{"syslog_host"} = $item[3] }
+
+unmatched: <rulevar: local $type = { }>
+unmatched: 'unmatched' '{' (reaction ';')(s?) '}' { $file->{"unmatched"} = $type }
+GRAMMAR
+
+  my $parser = Parse::RecDescent->new($grammar);
+  my $config;
+  if ($opts->{"m"}) {
+    $config = generate_config()
+  } else {
+    local $/ = undef;
+    open(CONFIG, $cfname) or die("Unable to open: $cfname");
+    $config = <CONFIG>;
+    close(CONFIG);
+  }
+  $config = $parser->config($config);
+
+  return $config;
+}
+
+sub setup {
+  my $config = shift;
+  debug(1, "Watching: " . join(", ", keys(%$config)));
+  foreach my $file (keys(%{$config})) {
+    my $matches = $config->{$file}->{"types"};
+    my $matchhash;
+    foreach my $match (keys(%{$matches})) {
+      my $m = $matches->{$match};
+      debug(2, "Match: $match");
+      foreach my $string (@{$m->{"matches"}}) {
+        if ($m->{"match_syslog"}) {
+          my $prog = ($m->{"syslog_prog"}) ? ($m->{"syslog_prog"} . '(?:\[\\d+\])?') : "%SYSLOGPROG%";
+          my $host = $m->{"syslog_host"} || "%HOST%";
+          $string = "%SYSLOGDATE% $host $prog: %DATA:GLOB%$string";
+        }
+        debug(2, "String: $string");
+        $matchhash->{$string} = $match;
+      }
+      if (scalar(@{$m->{"matches"}}) == 0) {
+        if ($m->{"match_syslog"}) {
+          my $prog = ($m->{"syslog_prog"}) ? ($m->{"syslog_prog"} . '(?:\[\\d+\])?') : "%SYSLOGPROG%";
+          my $host = $m->{"syslog_host"} || "%HOST%";
+          my $string = "%SYSLOGDATE% $host $prog: %DATA:GLOB%";
+          debug(2, "String: $string");
+          $matchhash->{$string} = $match;
+        }
+      }
+
+      $matches->{$match}->{"interval"} ||= 0;
+      $matches->{$match}->{"threshold"} ||= 0;
+
+      # Normalize perl blocks ?
+      #map {
+        #if ($_->{"type"} eq 'perl') {
+          ##$_->{"string"} =~ s/^\s*{\s*(.*)\s*}\s*$/$1/;
+          ##"Perl: " . $_->{"string"} . "\n";
+        #}
+      #} @{$matches->{$match}->{"reactions"}};
+    }
+    $PATTERNS->{$file} = $matchhash;
+  }
+}
+
+sub addpatterns {
+  my $p = shift;
+  foreach my $pattern (keys(%$p)) {
+    debug(2, "Adding pattern '$pattern'");
+    $MATCH{$pattern} = $p->{$pattern};
+  }
+  return 0;
+}
+
+sub addfilters {
+  my $f = shift;
+  #print STDERR Dumper($f);
+  foreach my $filter (keys(%$f)) {
+    debug(2, "Adding filter '$filter': " . $f->{$filter});
+    # Sanitize filter:
+    my $sf = $filter;
+    $sf  =~ s/^{|}$//g;
+    $sf = qr/$sf/;
+    $filters->{$sf} = sub { eval($f->{$filter}); }
+  }
+
+  return 0;
+}
+
+sub react {
+  my ($fileconf, $values, $log, $keyname) = @_;
+  foreach (@{$fileconf->{"reactions"}}) {
+    my ($cmd,$type) = ($_->{"string"}, $_->{"type"});
+    if ($type eq 'command') {
+      $cmd = meta2string($cmd, $values);
+      debug(1, "Executing (from $keyname): $cmd");
+      system($cmd);
+    } elsif ($type eq 'perl') {
+      my ($d, $v, $s);
+      # XXX: Should this just be $foo ||= {} ?
+      $storage->{$log}->{$keyname} = {} if (!exists($storage->{$log}->{$keyname}));
+      $d = $storage->{$log}->{$keyname};
+      map { $s->{$_} = $fileconf->{$_} } qw(threshold count interval);
+      $v = $values;
+      # XXX: Instead of always evalling this, why not create a
+      # subroutine like so: my $func; eval('$func = sub { $cmd }')
+      # and always call $func->() instead?
+      #eval($cmd);
+      #print $cmd;
+      $cmd->($d,$v,$s);
+      warn $@ if $@;
+    } else {
+      debug(0, sprintf("Unknown execution type: %s. %s", $type, $cmd));
+    }
+  }
+}
+
+sub generate_config {
+  my $match = $opts->{"m"};
+  my $reaction = $opts->{"r"} || "%=LINE%";
+
+  my $files = "-";
+  $files = join(",",@ARGV) if (@ARGV);
+    
+
+  $reaction =~ s/"/\\"/g;
+  my $conf = qq(
+  catlist "$files" {
+    type "all" {
+      match = "$match";
+      reaction = { print meta2string("$reaction\n", \$v); };
+    };
+  };);
+
+  return $conf
+}
+
+sub check_predicates {
+  my ($predicates, $vals) = @_;
+  my (%ops) = (
+    "~" => sub { $_[0] =~ $_[1] },
+    "==" => sub { $_[0] == $_[1] },
+    "<" => sub { $_[0] < $_[1] },
+    ">" => sub { $_[0] > $_[1] },
+    "<=" => sub { $_[0] <= $_[1] },
+    ">=" => sub { $_[0] >= $_[1] },
+    "lt" => sub { $_[0] lt $_[1] },
+    "gt" => sub { $_[0] gt $_[1] },
+    "le" => sub { $_[0] le $_[1] },
+    "ge" => sub { $_[0] ge $_[1] },
+    "eq" => sub { $_[0] eq $_[1] },
+  );
+  my (%strcmp) = (
+    "<" => "lt",
+    ">" => "gt",
+    "<=" => "le",
+    ">=" => "ge",
+    "==" => "eq",
+  );
+
+  for my $a (keys(%$predicates)) {
+    my ($test) = $predicates->{$a};
+    next unless $test;
+    debug(6, "Testing $test\n");
+    if ($test =~ m/^([<>]=?|==)(.*)$/) {
+      my ($op, $val) = ($1, $2);
+      my ($a, $b) = ($vals->{$a}, $val);
+      my $retval;
+      if ($a =~ m/^$RE{num}{real}$/ && $b =~ m/^$RE{num}{real}$/) {
+        $retval = $ops{$op}->($a,$b);
+      } else { # Do string comparison
+        $retval = $ops{$strcmp{$op}}->($a, $b);
+      }
+      debug(7, "$a $op $b == " . $retval);
+      if (!$retval) {
+        debug(4, "Predicate '$test' failed.");
+        return 0;
+      }
+    } elsif ($test =~ m/^(~)(.*)$/) {
+      my ($op, $val) = ($1, $2);
+      $val =~ s,^/|/$,,g;
+      $val =~ s,\\/,/,g;
+      my ($a, $b) = ($vals->{$a}, $val);
+      my $retval = $ops{$op}->($a, $b);
+      debug(7, "$a $op $b == " . $retval);
+      if (!$retval) {
+        debug(4, "Predicate '$test' failed.");
+        return 0;
+      }
+    } else {
+      debug(0, "Unknown test: $test");
+    }
+    #print "Testing $a vs $test\n";
+  }
+  return 1;
+}
