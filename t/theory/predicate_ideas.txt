@@ -1,0 +1,1 @@
+echo "test foo foobar" | perl -Mre=eval -nle 'sub a { print "Check $^N"; my $zz = $^N; return "(?=\A)" unless ($zz eq 'foobar') }; $y = $_; $x = $y =~ m/(\b\w+\b)(??{ my $aa = a(); print STDERR $aa; $aa })/; print $x'
