@@ -1,1 +1,6 @@
 echo "test foo foobar" | perl -Mre=eval -nle 'sub a { print "Check $^N"; my $zz = $^N; return "(?=\A)" unless ($zz eq 'foobar') }; $y = $_; $x = $y =~ m/(\b\w+\b)(??{ my $aa = a(); print STDERR $aa; $aa })/; print $x'
+
+echo "foo foobar foobaz" | perl -Mre=eval -nle 'my $y; my $re = qr/(\b\w+\b)(?{ print "Y: $^N"; $^N =~ m@bar@ ? undef : "(?=.\\A)" })(??{ print STDERR "R: $^R"; $^R })/; print $re; my $x = m/$re/; $, = "\n"; print $x, $1, $y'
+
+
+
