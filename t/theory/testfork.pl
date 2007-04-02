@@ -6,10 +6,12 @@ use warnings;
 use re 'eval';
 use IO::Handle;
 use Socket;
+use Regexp::Common;
 
-my $re = qr/(\b\w+\b)/;
-my $subre = qr/bar/;
-my $stopre = '(?=.\A)';
+my $re = qr/($RE{net}{IPv4})/; # Look for a token matching this
+my $subre = qr/5$/;             # But the token must also match this
+
+my $stopre = '(?=.\A)';         # A regexp guaranteed to fail.
 
 socketpair(CHILD, PARENT, AF_UNIX, SOCK_DGRAM, PF_UNSPEC);
 CHILD->autoflush(1);
@@ -26,12 +28,13 @@ if (fork() > 0) {
 exit(0);
 
 sub parent {
-  my $str = "foo foobar foobaz";
-  local $/ = undef;
+  my $str = "$ARGV[0]";
   my $match = $str =~ m/($re)(??{ check($^N); })/;
 
   print "Match: $match\n";
-  print "Group: $1\n";
+  if ($match) {
+    print "Group: $1\n";
+  }
 }
 
 sub check {
@@ -39,30 +42,26 @@ sub check {
   print CHILD "$word\n";
   print CHILD "$subre\n";
 
-  sleep(1);
-  print STDERR "parent reading  from result\n";
-  my $result = <CHILD>;
-  print STDERR "parent reading  complete\n";
-  print STDERR "Result: $result\n";
-  return "(bar)";
+  #print STDERR "parent reading  from result\n";
+  chomp(my $result = <CHILD>);
+  #print STDERR "parent reading  complete\n";
+  return "$result";
 }
 
 sub child {
   $SIG{PIPE} = sub { print STDERR "child got sigpipe\n"; exit(1) };
 
   while (1) {
-    print STDERR "Child loop start\n";
+    #print STDERR "Child loop start\n";
     chomp(my $word = <PARENT>);
     chomp(my $subre = <PARENT>);
     print "$word / $subre\n";
     if ($word =~ m/$subre/) {
-      print STDERR "Sub re match\n";
-      print PARENT "nothing\n";
+      #print STDERR "Sub re match\n";
+      print PARENT "\n";
     } else {
-      print STDERR "Sub re no match\n";
+      #print STDERR "Sub re no match\n";
       print PARENT "$stopre\n";
     }
-    close(PARENT);
-    die;
   }
 }
