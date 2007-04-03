@@ -206,7 +206,7 @@ exit(0);
 
 sub debug {
   my ($level, $msg) = @_;
-  $msg =~ s/[^\n]$/$&\n/s; # Add a newline if there isn't one.
+  $msg .= "\n" if (substr($msg,-1) ne "\n");
   if ($level <= $debuglevel) {
     printf STDERR ("%s: [debug%d] %s", $0, $level, $msg);
     syslog(LOG_INFO, "%s", $msg);
@@ -643,10 +643,9 @@ sub handle_capture {
   $values->{$word} = $capture;
   #$predicates->{$word} = $predicate;
 
-  if (defined $predicate) {
-    #debug(1, "Predicate test '$predicate' on '$capture'");
+  if (defined($predicate) && length($predicate) > 0) {
+    #debug(0, "Predicate test '$predicate' on '$capture'");
     my $ret = regexhack::check($capture, $predicate);
-    #print STDERR "ret: $capture / $predicate = $ret\n";
     return $ret;
   }
   return ""
