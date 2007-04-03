@@ -729,7 +729,7 @@ sub check_predicate {
     "==" => "eq",
   );
 
-  main::debug(3, "Testing: $test on $value");
+  main::debug(3, "Predicate testing: $test on $value");
 
   if ($test =~ m/^([<>]=?|==)(.*)$/) {
     my ($op, $val) = ($1, $2);
