@@ -177,6 +177,9 @@ foreach (keys(%$config)) {
   (undef, $state->{"inode"}->{$s}) = stat($state->{"orig"}->{$s});
 }
 
+# Start the hack.
+regexhack::hackinit();
+
 # Loop for data for as long as our love shall last...
 while($select->count()) {
   my @ready = $select->can_read(60);
@@ -322,14 +325,6 @@ sub pattern2regex {
       )(?{ $predicate = $^N })
      @x;
 
-  my $Xpredicate_regex = qr@
-      (
-       ((?:[<>]=?|==)[^%]+)(?{ $predicate = $^N })
-       |
-       (~$RE{delimited}{-delim=>'/'})(??{ "(?<=" . substr($^N, 1) . ")" })
-      )
-     @x;
-
   my $count;
   do {
     my $rounds = 0;
@@ -339,6 +334,7 @@ sub pattern2regex {
     # ie; %IP% is valid, as is %IP:FOO%
     for my $key (keys(%MATCH)) {
       my $predicate = "";
+
       my $re = qr,%
                    (
                     (?:$key)                # Pattern name
@@ -347,7 +343,10 @@ sub pattern2regex {
                    (?:$predicate_regex)? # Post-match predicate
                   %
                  ,x;
-      $count += $regex =~ s@$re@($MATCH{$key}(??{ "(?<=" . substr("$predicate",2,-1) . ")" if ($predicate =~ m,^/.*/\$,) }))(?{ \$values{'$1'} = \$^N; \$predicates{'$1'} = '$predicate' })@g;
+      $count += $regex =~ s@$re@($MATCH{$key})(??{ handle_capture($1, \\\%values, \\\%predicates, \$predicate) })@g;
+      if ($predicate) {
+        print STDERR substr($predicate, 2, -1) . "\n";
+      }
     }
     $rounds++;
     if ($rounds > 20) {
@@ -700,3 +699,62 @@ sub check_predicates {
   }
   return 1;
 }
+
+sub handle_capture {
+  my ($word, $values, $predicates, $predicate) = @_;
+  my $group = $^N;
+  $values->{$word} = $^N; 
+  $predicates->{$word} = $predicate;
+
+  return ""
+}
+
+# Hack around a regex-make-perl-crash bug
+package regexhack;
+
+use IO::Handle;
+use Socket;
+
+my $stopre = '(?=.\A)';
+
+socketpair(CHILD, PARENT, AF_UNIX, SOCK_STREAM, PF_UNSPEC);
+CHILD->autoflush(1);
+PARENT->autoflush(1);
+
+sub hackinit {
+  if (fork() == 0) {
+    child();
+    print STDERR "Child exited unexpectedly.";
+    exit(1);
+  }
+}
+
+sub check {
+  my ($word, $subre) = @_;
+  print CHILD "$word\n";
+  print CHILD "$subre\n";
+
+  chomp(my $result = <CHILD>);
+  return "$result";
+}
+
+sub child {
+  $SIG{PIPE} = sub { print STDERR "hack process child got sigpipe\n"; exit(1) };
+  print STDERR "Child pid started\n";
+
+  while (1) {
+    my $word = <PARENT>;
+    my $subre = <PARENT>;
+    last if (! ($word && $subre) );
+    $word = chomp($word);
+    $subre = chomp($subre);
+    print STDERR "check: $word / $subre\n";
+    if ($word =~ m/$subre/) {
+      print PARENT "\n";
+    } else {
+      print PARENT "$stopre\n";
+    }
+  }
+}
+
+
