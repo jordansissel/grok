@@ -98,7 +98,7 @@ my $filters = {
   qr/e\[((?:(?:\\])|(?:[^\]]))*)\]/ => sub { s/([$^N])/\\$1/g; $_ },
   #qr/e(.)((??{"([^$1]+)"}))$1/ => sub { print STDERR " foo '$1'\n"; return 1 },
 
-  qr/stripquotes/ => sub { s/^(['"])//; s/$2$//; $_ },
+  qr/stripquotes/ => sub { s/^(['"])//; s/$1$//; return $_ },
   qr/parsedate/ => sub { str2time($_) },
   qr/strftime\(($RE{quoted})\)/ => sub { 
       my $m = substr($^N, 1, -1);
@@ -343,10 +343,7 @@ sub pattern2regex {
                    (?:$predicate_regex)? # Post-match predicate
                   %
                  ,x;
-      $count += $regex =~ s@$re@($MATCH{$key})(??{ handle_capture($1, \\\%values, \\\%predicates, \$predicate) })@g;
-      if ($predicate) {
-        print STDERR substr($predicate, 2, -1) . "\n";
-      }
+      $count += $regex =~ s@$re@($MATCH{$key})(??{ handle_capture('$1', \\\%values, \\\%predicates, '$predicate') })@g;
     }
     $rounds++;
     if ($rounds > 20) {
@@ -702,10 +699,16 @@ sub check_predicates {
 
 sub handle_capture {
   my ($word, $values, $predicates, $predicate) = @_;
-  my $group = $^N;
-  $values->{$word} = $^N; 
-  $predicates->{$word} = $predicate;
+  my $capture = $^N;
+  $values->{$word} = $capture;
+  #$predicates->{$word} = $predicate;
 
+  if (defined $predicate) {
+    #debug(1, "Predicate test '$predicate' on '$capture'");
+    my $ret = regexhack::check($capture, $predicate);
+    #print STDERR "ret: $capture / $predicate = $ret\n";
+    return $ret;
+  }
   return ""
 }
 
@@ -714,47 +717,108 @@ package regexhack;
 
 use IO::Handle;
 use Socket;
-
-my $stopre = '(?=.\A)';
-
-socketpair(CHILD, PARENT, AF_UNIX, SOCK_STREAM, PF_UNSPEC);
-CHILD->autoflush(1);
-PARENT->autoflush(1);
+use Regexp::Common;
+use constant STOPRE => '(?=.\A)';
 
 sub hackinit {
+  socketpair(CHILD, PARENT, AF_UNIX, SOCK_STREAM, PF_UNSPEC)
+    or die("$!");
+  CHILD->autoflush(1);
+  PARENT->autoflush(1);
+
   if (fork() == 0) {
     child();
-    print STDERR "Child exited unexpectedly.";
+    print STDERR "Child exited unexpectedly.\n";
     exit(1);
   }
 }
 
 sub check {
-  my ($word, $subre) = @_;
-  print CHILD "$word\n";
-  print CHILD "$subre\n";
+  my ($capture, $predicate) = @_;
+  $capture ||= "";
+  if (!$predicate) {
+    return "";
+  }
+  print CHILD "$capture\n";
+  print CHILD "$predicate\n";
 
   chomp(my $result = <CHILD>);
-  return "$result";
+  return $result;
 }
 
 sub child {
   $SIG{PIPE} = sub { print STDERR "hack process child got sigpipe\n"; exit(1) };
-  print STDERR "Child pid started\n";
 
   while (1) {
     my $word = <PARENT>;
     my $subre = <PARENT>;
     last if (! ($word && $subre) );
-    $word = chomp($word);
-    $subre = chomp($subre);
-    print STDERR "check: $word / $subre\n";
-    if ($word =~ m/$subre/) {
-      print PARENT "\n";
-    } else {
-      print PARENT "$stopre\n";
+    chomp($word);
+    chomp($subre);
+
+    my $ret = "";
+    if (length($subre) && !check_predicate($word, $subre)) {
+      $ret = '(?=.\A)';
     }
+    print PARENT "$ret\n"
   }
 }
 
+sub check_predicate {
+  my ($value, $test) = @_;
 
+  my (%ops) = (
+    "~" => sub { $_[0] =~ $_[1] },
+    "==" => sub { $_[0] == $_[1] },
+    "<" => sub { $_[0] < $_[1] },
+    ">" => sub { $_[0] > $_[1] },
+    "<=" => sub { $_[0] <= $_[1] },
+    ">=" => sub { $_[0] >= $_[1] },
+    "lt" => sub { $_[0] lt $_[1] },
+    "gt" => sub { $_[0] gt $_[1] },
+    "le" => sub { $_[0] le $_[1] },
+    "ge" => sub { $_[0] ge $_[1] },
+    "eq" => sub { $_[0] eq $_[1] },
+  );
+
+  my (%strcmp) = (
+    "<" => "lt",
+    ">" => "gt",
+    "<=" => "le",
+    ">=" => "ge",
+    "==" => "eq",
+  );
+
+  main::debug(3, "Testing: $test on $value");
+
+  if ($test =~ m/^([<>]=?|==)(.*)$/) {
+    my ($op, $val) = ($1, $2);
+    my ($a, $b) = ($value, $val);
+    my $retval;
+    if ($a =~ m/^$RE{num}{real}$/ && $b =~ m/^$RE{num}{real}$/) {
+      $retval = $ops{$op}->($a,$b);
+    } else { # Do string comparison
+      $retval = $ops{$strcmp{$op}}->($a, $b);
+    }
+    main::debug(7, "$a $op $b == " . $retval);
+    if (!$retval) {
+      main::debug(4, "Predicate '$test' failed.");
+      return 0;
+    }
+  } elsif ($test =~ m/^(~)(.*)$/) {
+    my ($op, $val) = ($1, $2);
+    $val =~ s,^/|/$,,g;
+    $val =~ s,\\/,/,g;
+    my ($a, $b) = ($value, $val);
+    my $retval = $ops{$op}->($a, $b);
+    main::debug(7, "$a $op $b == " . $retval);
+    if (!$retval) {
+      main::debug(4, "Predicate '$test' failed.");
+      return 0;
+    }
+  } else {
+    main::debug(0, "Unknown test: '$test'");
+  }
+
+  return 1;
+}

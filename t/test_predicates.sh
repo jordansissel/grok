@@ -8,4 +8,5 @@ rungrok() {
   perl ../grok -m "%GREEDYDATA~/test line/%" < input/predicates.regex
 }
 
+#rungrok > output/predicates
 try_self $0

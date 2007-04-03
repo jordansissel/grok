@@ -15,9 +15,9 @@ fi
 
 for filter in $filters; do
   if [ -f input/filter.${filter} ] ; then
-    rungrok $filter
-    #try $filter
+    #rungrok $filter > output/${filter}
+    try $filter
   else
-    #echo "Skipping $filters/$file, no input to test"
+    echo "Skipping $filters/$file, no input to test"
   fi
 done

@@ -13,7 +13,7 @@ my $subre = qr/5$/;             # But the token must also match this
 
 my $stopre = '(?=.\A)';         # A regexp guaranteed to fail.
 
-socketpair(CHILD, PARENT, AF_UNIX, SOCK_DGRAM, PF_UNSPEC);
+socketpair(CHILD, PARENT, AF_UNIX, SOCK_STREAM, PF_UNSPEC);
 CHILD->autoflush(1);
 PARENT->autoflush(1);
 
@@ -53,8 +53,11 @@ sub child {
 
   while (1) {
     #print STDERR "Child loop start\n";
-    chomp(my $word = <PARENT>);
-    chomp(my $subre = <PARENT>);
+    my $word = <PARENT>;
+    my $subre = <PARENT>;
+    last if (! ($word && $subre) );
+    $word = chomp($word);
+    $subre = chomp($subre);
     print "$word / $subre\n";
     if ($word =~ m/$subre/) {
       #print STDERR "Sub re match\n";
