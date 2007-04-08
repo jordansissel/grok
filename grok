@@ -406,7 +406,7 @@ sub filter {
     $ret = w($key, $ret);
     last unless $opts =~ s/^\|//;
   }
-  debug(1, "Remaining filters (should be empty): '$opts'\n");
+  debug(2, "Remaining filters (should be empty): '$opts'\n");
 
   return $ret;
 }
@@ -481,12 +481,13 @@ syslog: 'syslog' '=' number { $file->{"syslog"} = $item[3] }
 type: <rulevar: local $type = { }>
 type: 'type' typename '{' type_entry '}' { $file->{"types"}->{$item[2]} = $type }
 typename: string
-type_entry: (((match | threshold | interval | reaction | key | match_syslog | syslog_prog | syslog_host) ';') | ignorable)(s)
+type_entry: (((match | threshold | interval | reaction | key | match_syslog | syslog_prog | syslog_host | shell) ';') | ignorable)(s)
 
 match: 'match' '=' string { push(@{$type->{"matches"}},$item[3]) }
 threshold: 'threshold' '=' number { $type->{"threshold"} = $item[3] }
 interval: 'interval' '=' number { $type->{"interval"} = $item[3] }
 key: 'key' '=' string { $type->{"key"} = $item[3] }
+shell: 'shell' '=' string { $type->{"shell"} = $item[3] }
 reaction: 'reaction' '=' reactionspec { push(@{$type->{"reactions"}}, $item[3]) }
 # Let users change the reaction prog.
 #reaction_prog: 'reaction_prog' '=' 
@@ -581,8 +582,11 @@ sub addfilters {
     debug(2, "Adding filter '$filter': " . $f->{$filter});
     # Sanitize filter:
     my $sf = $filter;
-    $sf  =~ s/^{|}$//g;
-    $sf = qr/$sf/;
+    #$sf =~ s/^{|}$//g; # Trim leading and closing curly braces.
+    $sf = qr/$sf/;     # Filter names can be regexes.
+    if (exists($filters->{$sf})) {
+      debug(1, "Warning - filter '$filter' already exists and you are overriding it.");
+    }
     $filters->{$sf} = sub { eval($f->{$filter}); }
   }
 
@@ -595,7 +599,7 @@ sub react {
     my ($cmd,$type) = ($_->{"string"}, $_->{"type"});
     if ($type eq 'command') {
       $cmd = meta2string($cmd, $values);
-      debug(1, "Executing (from $keyname): $cmd");
+      debug(2, "Executing (from $keyname): $cmd");
       system($cmd);
     } elsif ($type eq 'perl') {
       my ($d, $v, $s);
