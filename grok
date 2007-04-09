@@ -171,7 +171,7 @@ foreach (keys(%$config)) {
   $command = "$TAIL '$_'" if ($config->{$_}->{"type"} eq 'file');
 
   debug(2, "Startup: Running $command");
-  open($s, "$command |") or die($!);
+  open($s, "$command |");
   $select->add($s);
   $state->{"map"}->{$s} = $_;
   (undef, $state->{"inode"}->{$s}) = stat($state->{"orig"}->{$s});
@@ -184,24 +184,10 @@ regexhack::hackinit();
 while($select->count()) {
   my @ready = $select->can_read(60);
   map(readlog($_), @ready);
-
-  # XXX: Look at all 'file' types. If the inode number changes, then reopen?
-  foreach ($select->handles) {
-    last;; #XXX: CHANGE THIS
-    my $inode;
-    (undef, $inode) = stat($state->{"orig"}->{$_});
-    if ($inode != $state->{"inode"}->{$_}) {
-      ## XXX RE OPEN FILE
-      close($_);
-      $select->remove($_);
-
-      open($_, "$TAIL '" . $state->{"orig"}->{$_} . "' |");
-      $select->add($_);
-    }
-  }
 }
 
 debug(1, "Nothing left to do (all files/execs ended) exiting");
+regexhack::hackteardown();
 exit(0);
 
 sub debug {
@@ -663,17 +649,25 @@ use Socket;
 use Regexp::Common;
 use constant STOPRE => '(?=.\A)';
 
+my $child_pid = -1;
+
 sub hackinit {
   socketpair(CHILD, PARENT, AF_UNIX, SOCK_STREAM, PF_UNSPEC)
     or die("$!");
   CHILD->autoflush(1);
   PARENT->autoflush(1);
 
-  if (fork() == 0) {
+  if (($child_pid = fork()) == 0) {
     child();
     print STDERR "Child exited unexpectedly.\n";
     exit(1);
   }
+}
+
+sub hackteardown {
+  close(PARENT);
+  close(CHILD);
+  kill("SIGTERM", $child_pid);
 }
 
 sub check {
