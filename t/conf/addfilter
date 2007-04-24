@@ -2,6 +2,7 @@
 
 filters {
   /reverse/ = { reverse };
+  /parsedate/ = { reverse };
 };
 
 catlist "input/addfilter" {
