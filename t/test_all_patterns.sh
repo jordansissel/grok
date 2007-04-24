@@ -20,7 +20,7 @@ fi
 for pattern in $patterns; do
   for file in $types; do
     if [ -f input/${pattern}.${file} ] ; then
-      #rungrok $pattern $file
+      #rungrok $pattern $file > output/${pattern}.${file}.new
       try $pattern $file
     else
       #echo "Skipping $pattern/$file, no input to test"
