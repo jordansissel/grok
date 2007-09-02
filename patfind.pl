@@ -37,8 +37,7 @@ my $debuglevel = 0;
 my $PATTERNS;
 
 # Pattern-space wildcards, used as %WILDCARD% in the pattern config
-# use 'our' so require()'d sources can access us.
-our %MATCH = (
+my %MATCH = (
   USERNAME => qr/[a-zA-Z0-9_-]+/,
   USER => "%USERNAME%",
   INT => qr/$RE{num}{int}/,
@@ -60,12 +59,11 @@ our %MATCH = (
   IPORHOST => "(?:%IP%|%HOSTNAME%)",
 
   # Months: January, Feb, 3, 03, 12, December
-  MONTH => qr/\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\b/,
-  MONTNUM => qr/\b(?:0?[0-9]|1[0-2])\b/,
+  MONTH => qr/\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?|0?[0-9]|1[0-2])\b/,
   MONTHDAY => qr/(?:(?:[0-2]?[0-9])|3[01])/,
 
   # Days: Monday, Tue, Thu, 0 (Sunday?), 6 (Saturday?)
-  DAY => qr/(?:Mon(?:day)?|Tue(?:sday)?|Wed(?:nesday)?|Thu(?:rsday)?|Fri(?:day)?|Sat(?:urday)?|Sun(?:day)?)/,
+  DAY => qr/(?:Mon(?:day)?|Tue(?:sday)?|Wed(?:nesday)?|Thu(?:rsday)?|Fri(?:day)?|Sat(?:urday)?|Sun(?:day)?|[0-6])/,
 
   # Years?
   YEAR => qr/%INT%/,
@@ -94,7 +92,7 @@ our %MATCH = (
 # stripquotes - strip leading and trailing quotes.
 # parsedate - convert time values
 # uid2user - uid lookups for usernames
-our $filters = {
+my $filters = {
   qr/shnq/ => sub { s/([`^()&{}[\]\$*?!|;'"\\])/\\$1/g; $_ },
   qr/shdq/ => sub { s/([\\`\$"])/\\$1/g; $_ },
   qr/e\[((?:(?:\\])|(?:[^\]]))*)\]/ => sub { s/([$^N])/\\$1/g; $_ },
@@ -113,11 +111,8 @@ our $filters = {
   qr/httpfilter/ => sub { s/^\S+ (\S+) \S+$/$1/; $_ },
 };
 
-our $opts = {};
-getopt('Ffdbm:r:P:', $opts);
-
-# Start the hack.
-regexhack::hackinit();
+my $opts = {};
+getopt('fdbm:r:P:', $opts);
 
 if (exists($opts->{"P"})) {
   print pattern2regex($opts->{"P"}) . "\n";
@@ -147,11 +142,6 @@ if (exists($opts->{"b"})) {
 
   # Change ps output to something reasonable?
   #$0 = "grok " . join(" ",@ARGV);
-}
-
-if (exists($opts->{"F"})) {
-  require 'grok_patfind.pl';
-  exit;
 }
 
 # Syslog to stderr, too, if we aren't going to the background.
@@ -186,6 +176,9 @@ foreach (keys(%$config)) {
   $state->{"map"}->{$s} = $_;
   (undef, $state->{"inode"}->{$s}) = stat($state->{"orig"}->{$s});
 }
+
+# Start the hack.
+regexhack::hackinit();
 
 # Loop for data for as long as our love shall last...
 while($select->count()) {
