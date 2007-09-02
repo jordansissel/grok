@@ -43,6 +43,7 @@ our %MATCH = (
   USER => "%USERNAME%",
   INT => qr/$RE{num}{int}/,
   NUMBER => qr/$RE{num}{real}/,
+  POSITIVENUM => qr/\b[0-9]+\b/,
   WORD => qr/\w+/,
   NOTSPACE => qr/\S+/,
   DATA => qr/.*?/,
@@ -55,9 +56,14 @@ our %MATCH = (
   WINDOWSMAC => qr/(?:(?:[A-Fa-f0-9]{2}-){5}[A-Fa-f0-9]{2})/,
   COMMONMAC => qr/(?:(?:[A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2})/,
   IP => $RE{net}{IPv4},
-  HOSTNAME => qr/$RE{net}{domain}{-nospace}/,
+  # $RE{net}{domain} fails to match domains starting with a number.
+  HOSTNAME => qr/(?:[0-9A-Za-z](?:(?:[-A-Za-z0-9]){0,61}[A-Za-z0-9])?(?:\.[A-Za-z](?:(?:[-A-Za-z0-9]){0,61}[A-Za-z0-9])?)*)/,
   HOST => "%HOSTNAME%",
   IPORHOST => "(?:%IP%|%HOSTNAME%)",
+
+  # File system paths
+  UNIXPATH => qr/(?<![\w\/])(?:\/[^\/\s]*)+/,
+  #WINPATH => qr/(?:\\[^\\]*)+/,
 
   # Months: January, Feb, 3, 03, 12, December
   MONTH => qr/\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\b/,
@@ -121,7 +127,7 @@ regexhack::hackinit();
 
 if (exists($opts->{"P"})) {
   print pattern2regex($opts->{"P"}) . "\n";
-  exit(0);
+  finish_and_exit(0);
 }
 
 if (exists($opts->{"d"})) {
@@ -151,7 +157,7 @@ if (exists($opts->{"b"})) {
 
 if (exists($opts->{"F"})) {
   require 'grok_patfind.pl';
-  exit;
+  finish_and_exit();
 }
 
 # Syslog to stderr, too, if we aren't going to the background.
@@ -162,7 +168,7 @@ my $config = readconfig($opts->{"f"});
 #print Dumper($config);
 unless (defined($config)) {
   debug(0, "Syntax error in config?");
-  exit(1);
+  finish_and_exit(1);
 }
 setup($config);
 
@@ -194,8 +200,13 @@ while($select->count()) {
 }
 
 debug(1, "Nothing left to do (all files/execs ended) exiting");
-regexhack::hackteardown();
-exit(0);
+finish_and_exit(0);
+
+sub finish_and_exit {
+  my $ret = shift || 0;
+  regexhack::hackteardown();
+  exit($ret);
+}
 
 sub debug {
   my ($level, $msg) = @_;

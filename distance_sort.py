@@ -7,7 +7,7 @@ import re
 
 #ifile = "tmp/auth.log"
 #ifile = "tmp/access.1187827200"
-ifile = "messages"
+ifile = sys.argv[1]
 input = file(ifile)
 
 differ = difflib.Differ()
@@ -17,7 +17,9 @@ escapees = re.compile(r"([.\[\]\{\}\(\)])")
 def mkreg(pattern):
   re_list = []
   for i in pattern:
-    if i == "XXTOKXX":
+    if i == "%INT%":
+      re_list.append("\d+")
+    elif i == "%WORD%":
       re_list.append("\S+")
     else:
       re_list.append(re.escape(i))
@@ -28,9 +30,9 @@ def mkreg(pattern):
 def pattok(word):
   try:
     i = int(word)
-    return "XX:INT"
+    return "%INT%"
   except:
-    return "XX:TOK"
+    return "%WORD%"
     
 
 #print mkreg(["foo", "bar.baz", "1.2.3.4", "[foo]"])
@@ -42,7 +44,7 @@ for line in input:
   compare_input = file(ifile)
   words = line.split()
   lineno += 1
-  print >>sys.stderr, "Line %d" % lineno
+  #print >>sys.stderr, "Line %d" % lineno
 
   match = None
   for reg in known_patterns:
@@ -53,11 +55,13 @@ for line in input:
     #print "Skipping known line %d" % lineno
     continue
 
+  this_line_similarity = 0
   for compare_line in compare_input:
     compare_line = compare_line.strip()
     compare_words = compare_line.split()
 
     if compare_line == line:
+      #print "Skipping identical line"
       continue
 
     match = None
@@ -72,7 +76,7 @@ for line in input:
     #result = difflib.unified_diff(words, compare_words);
     similarity = 0
     pattern = []
-    op = ""
+    lastop = op = ""
     for i in result:
       op = i[0]
       val = i[2:]
@@ -91,7 +95,16 @@ for line in input:
 
       lastop = op
 
-    if similarity > 5:
+    score = (similarity + 0.0) / min(len(words), len(compare_words))
+
+    if score > .5:
+      this_line_similarity += 1
       reg = mkreg(pattern)
-      print " ".join(pattern)
       known_patterns.append(reg);
+      #print "%.2f: %s" % (score, line)
+      #print "    : %s" % (compare_line)
+      #print " ==> %s" % " ".join(pattern)
+      print " ".join(pattern)
+
+    if this_line_similarity > 30:
+      break
