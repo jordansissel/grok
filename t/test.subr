@@ -10,7 +10,13 @@ try() {
   GOODOUTPUT=`echo $* | tr ' ' .`
   compare $OUTPUT output/$GOODOUTPUT
   EXITCODE=$?
-  [ "$EXITCODE" -eq 0 ] && echo "Test OK: $1" || echo "Test failed: $1"
+  if [ "$EXITCODE" -eq 0 ] ; then
+    echo "Test OK: $1" 
+  else
+    echo "Test failed: $1"
+    echo "Output:"
+    cat /tmp/output
+  fi
   return $EXITCODE
 }
 
