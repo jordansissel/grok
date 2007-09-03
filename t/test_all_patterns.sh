@@ -23,7 +23,7 @@ for pattern in $patterns; do
       #rungrok $pattern $file > output/${pattern}.${file}.new
       try $pattern $file
     else
-      #echo "Skipping $pattern/$file, no input to test"
+      echo "Skipping $pattern/$file, no input to test"
     fi
   done
 done

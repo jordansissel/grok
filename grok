@@ -63,7 +63,7 @@ our %MATCH = (
 
   # File system paths
   UNIXPATH => qr/(?<![\w\/])(?:\/[^\/\s]*)+/,
-  #WINPATH => qr/(?:\\[^\\]*)+/,
+  WINPATH => qr/(?:\\[^\\]*)+/,
 
   # Months: January, Feb, 3, 03, 12, December
   MONTH => qr/\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\b/,
@@ -82,7 +82,7 @@ our %MATCH = (
   SYSLOGDATE => "%MONTH% +%MONTHDAY% %TIME%",
   PROG => "%WORD%",
   PID => "%INT%",
-  SYSLOGPROG => qr/%PROG%(?:\[%PID%\])?/,
+  SYSLOGPROG => qr/(?:[\w-]+(?:\/[\w-]+)?)(?:\[%PID%\])?/,
   HTTPDATE => qr,%MONTHDAY%/%MONTH%/%YEAR%:%TIME% %INT:ZONE%,,
 
   # Shortcuts
