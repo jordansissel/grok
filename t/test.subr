@@ -11,9 +11,9 @@ try() {
   compare $OUTPUT output/$GOODOUTPUT
   EXITCODE=$?
   if [ "$EXITCODE" -eq 0 ] ; then
-    echo "Test OK: $1" 
+    echo "Test ($0) OK: $1" 
   else
-    echo "Test failed: $1"
+    echo "Test ($0) failed: $1"
     echo "Output:"
     cat /tmp/output
   fi

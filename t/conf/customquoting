@@ -9,6 +9,6 @@ patterns {
 exec "cat input/customquoting" {
 	type "foo" {
 		match = ".*";
-		reaction = 'echo "%=LINE|e[abcdefg]%"';
+		reaction = { print meta2string("%=LINE|e[abcdefg]%\n", $v) };
 	};
 };

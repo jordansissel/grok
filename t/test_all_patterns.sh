@@ -12,7 +12,7 @@ if [ $# -gt 0 ]; then
 fi
 
 [ -z "$patterns" ] \
-  && patterns=`cat ../grok | sed -ne '/^my %MATCH/,/^);$/p;' | sort | awk '$1 ~ /^[A-Z]+$/ { print $1 }')`
+  && patterns=`cat ../grok | sed -ne '/^our %MATCH/,/^);$/p;' | sort | awk '$1 ~ /^[A-Z]+$/ { print $1 }'`
 
 [ -z "$types" ]  \
   && types="match fail"
@@ -22,8 +22,9 @@ for pattern in $patterns; do
     if [ -f input/${pattern}.${file} ] ; then
       #rungrok $pattern $file > output/${pattern}.${file}.new
       try $pattern $file
-    else
-      echo "Skipping $pattern/$file, no input to test"
+    #else
+      #echo "Skipping $pattern/$file, no input to test" >&2
+
     fi
   done
 done
