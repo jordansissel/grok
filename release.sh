@@ -14,7 +14,7 @@ TMP="/tmp"
 GROK="grok-$1"
 DIR="${TMP}/${GROK}"
 mkdir "$DIR"
-cp -v grok grok.1 grok.conf CHANGELIST "$DIR"
+cp -v grok grok.1 grok_patfind.pl grok.conf CHANGELIST "$DIR"
 rsync -a --exclude '.svn' t examples "$DIR"
 
 tar -C /tmp -vcf grok-$1.tar.gz "$GROK"

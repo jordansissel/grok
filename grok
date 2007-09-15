@@ -71,13 +71,13 @@ our %MATCH = (
   URIPATH => qr/(?:\/[^\/\s?]*)+/,
   URIPARAM => qr/\?(?:[A-z0-9]+(?:=(?:[^&]*))?(?:&(?:[A-z0-9]+(?:=(?:[^&]*))?)?)*)?/,
   #URL => qr@%URIPROTO%://(?:%URIHOST%)?(?:%UNIXPATH%)(?:%URIPARAM%)??@,
-  URL => qr@%URIPROTO%://(?:%URIHOST%)?(?:%URIPATH%)(?:%URIPARAM%)?@,
+  URI => qr@%URIPROTO%://(?:%URIHOST%)?(?:%URIPATH%)(?:%URIPARAM%)?@,
   #URI => qr/[A-z]+:\/\/(?:%IPORHOST%(?::[0-9]+)?)?(?:\/[^\/\s]*)*(?:\?[^ ]*)?/,
 
   # Months: January, Feb, 3, 03, 12, December
   MONTH => qr/\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\b/,
   MONTNUM => qr/\b(?:0?[0-9]|1[0-2])\b/,
-  MONTHDAY => qr/(?:(?:[0-2]?[0-9])|3[01])/,
+  MONTHDAY => qr/(?:(?:3[01]|[0-2]?[0-9]))/,
 
   # Days: Monday, Tue, Thu, 0 (Sunday?), 6 (Saturday?)
   DAY => qr/(?:Mon(?:day)?|Tue(?:sday)?|Wed(?:nesday)?|Thu(?:rsday)?|Fri(?:day)?|Sat(?:urday)?|Sun(?:day)?)/,

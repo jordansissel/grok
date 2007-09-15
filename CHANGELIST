@@ -1,5 +1,27 @@
-Changes since 20070224:
-  
+Changes for 20070915:
+
+  * Added 'grok_patfind.pl' which adds 'grok -F' functionality. Read about it
+    here:
+    http://www.semicomplete.com/blog/geekery/grok-pattern-autodiscovery.html
+
+  * Proper shutdown is called to kill the "hack" subprocess
+  * Add 'shell' option to 'type' sections; not currently used.
+  * Warn if we're trying to override an existing filter.
+  * Added more perlthoughts to t/theory/
+
+  * Numerous pattern regex changes:
+    - NUMBER no longer uses Regexp::Common's real number regex since that one
+      matches '.' and my thoughts are that '.' is not a number
+    - Added POSITIVENUM pattern
+    - Fix HOSTNAME to match hostnames starting with a number (Again,
+      Regexp::Common fails me)
+    - Add path patterns: UNIXPATH, WINPATH, URI
+    - MONTH no longer matches 0 through 12
+    - DAY no longer matches 0 through 6
+    - SYSLOGPROG is more specific now, since valid prog names can have dashes.
+
+Changes for 20070402:
+
   Patterns:
     MAC now matches CISCOMAC, WINDOWSMAC, and COMMONMAC.
     MONTH is wrapped in \b's
