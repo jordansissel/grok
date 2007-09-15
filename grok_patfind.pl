@@ -19,15 +19,18 @@ setup($config);
 # Remove things that are too general
 my @skippable = qw(
   DATA GREEDYDATA USER USERNAME WORD NOTSPACE PID PROG YEAR
+  URIHOST URIPARAM URIPATH
 );
 my $skip_re = "^(?:" . join("|",@skippable) . ')$';
 
 our %MATCH;
-my @sorted_patterns = sort { compare_by_complexity($a,$b); } keys(%MATCH);
+my @sorted_patterns = grep {!/$skip_re/} sort { compare_by_complexity($a,$b); } keys(%MATCH);
 
-#for my $i (@sorted_patterns) {
-  #print delimiter_score(pattern2regex("%$i%")), " ", $i, "\n";
-#}
+#print join("\n", @sorted_patterns);
+#exit(1);
+
+#for my $i (@sorted_patterns) { print noncapture_length(pattern2regex("%$i%")), " ", $i, "\n"; }; exit; 
+#for my $i (@sorted_patterns) { print delimiter_score(pattern2regex("%$i%")), " ", $i, "\n"; }; exit; 
 
 while (<STDIN>) {
   chomp($_);
@@ -108,7 +111,7 @@ sub analyze {
     my $round_matches = 0;
     foreach my $name (@sorted_patterns) {
       last if (pos($line) == $#line);
-      next if ($name =~ m/$skip_re/);
+      #next if ($name =~ m/$skip_re/);
 
       # Skip %FOO% and %FOO:BAR%
       #print "str: " . substr($line, pos($line)) . "\n";

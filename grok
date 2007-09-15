@@ -42,7 +42,9 @@ our %MATCH = (
   USERNAME => qr/[a-zA-Z0-9_-]+/,
   USER => "%USERNAME%",
   INT => qr/$RE{num}{int}/,
-  NUMBER => qr/$RE{num}{real}/,
+  # Regex::Common's real number matches literal "." which is bad.
+  #NUMBER => qr/$RE{num}{real}/,
+  NUMBER => qr/(?:[+-]?(?:(?:[0-9]+(?:\.[0-9]*)?)|(?:\.[0-9]+)))/,
   POSITIVENUM => qr/\b[0-9]+\b/,
   WORD => qr/\w+/,
   NOTSPACE => qr/\S+/,
@@ -61,9 +63,16 @@ our %MATCH = (
   HOST => "%HOSTNAME%",
   IPORHOST => "(?:%IP%|%HOSTNAME%)",
 
-  # File system paths
-  UNIXPATH => qr/(?<![\w\/])(?:\/[^\/\s]*)+/,
-  WINPATH => qr/(?:\\[^\\]*)+/,
+  # paths
+  UNIXPATH => qr/(?<![\w\/])(?:\/[^\/\s?*]*)+/,
+  WINPATH => qr/(?:\\[^\\?*]*)+/,
+  URIPROTO => qr/[A-z]+/,
+  URIHOST => qr/%IPORHOST%(?:%PORT%)?/,
+  URIPATH => qr/(?:\/[^\/\s?]*)+/,
+  URIPARAM => qr/\?(?:[A-z0-9]+(?:=(?:[^&]*))?(?:&(?:[A-z0-9]+(?:=(?:[^&]*))?)?)*)?/,
+  #URL => qr@%URIPROTO%://(?:%URIHOST%)?(?:%UNIXPATH%)(?:%URIPARAM%)??@,
+  URL => qr@%URIPROTO%://(?:%URIHOST%)?(?:%URIPATH%)(?:%URIPARAM%)?@,
+  #URI => qr/[A-z]+:\/\/(?:%IPORHOST%(?::[0-9]+)?)?(?:\/[^\/\s]*)*(?:\?[^ ]*)?/,
 
   # Months: January, Feb, 3, 03, 12, December
   MONTH => qr/\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\b/,
@@ -82,7 +91,7 @@ our %MATCH = (
   SYSLOGDATE => "%MONTH% +%MONTHDAY% %TIME%",
   PROG => "%WORD%",
   PID => "%INT%",
-  SYSLOGPROG => qr/(?:[\w-]+(?:\/[\w-]+)?)(?:\[%PID%\])?/,
+  SYSLOGPROG => qr/(?:[A-z][\w-]+(?:\/[\w-]+)?)(?:\[%PID%\])?/,
   HTTPDATE => qr,%MONTHDAY%/%MONTH%/%YEAR%:%TIME% %INT:ZONE%,,
 
   # Shortcuts
