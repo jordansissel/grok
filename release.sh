@@ -17,5 +17,5 @@ mkdir "$DIR"
 cp -v grok grok.1 grok_patfind.pl grok.conf CHANGELIST "$DIR"
 rsync -a --exclude '.svn' t examples "$DIR"
 
-tar -C /tmp -vcf grok-$1.tar.gz "$GROK"
+tar -C /tmp -zvcf grok-$1.tar.gz "$GROK"
 rm -r $DIR
