@@ -85,7 +85,7 @@ our %MATCH = (
   # Years?
   YEAR => qr/%INT%/,
   # Time: HH:MM:SS
-  TIME => qr/\d{2}:\d{2}(?::\d{2})?/,
+  TIME => qr/\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?/,
 
   # Syslog Dates: Month Day HH:MM:SS
   SYSLOGDATE => "%MONTH% +%MONTHDAY% %TIME%",
@@ -134,11 +134,6 @@ getopt('Ffdbm:r:P:', $opts);
 # Start the hack.
 regexhack::hackinit();
 
-if (exists($opts->{"P"})) {
-  print pattern2regex($opts->{"P"}) . "\n";
-  finish_and_exit(0);
-}
-
 if (exists($opts->{"d"})) {
   # default to debuglevel 1 if -d has no arguments.
   $debuglevel = $opts->{"d"} || 1;
@@ -180,6 +175,17 @@ unless (defined($config)) {
   finish_and_exit(1);
 }
 setup($config);
+
+my @pat_re_list = map("\Q$_\E", (keys(%MATCH), '=LINE', '=MATCH', '=FILE'));
+my $patnames = join("|", @pat_re_list);
+my $meta2string_re = qr/%($patnames(?::\w+)?)(?:\|((?:[^,|%]+)(?:[,|][^,|%]+)*))?%/;
+
+my $filter_re ||= join("|", map { qr/(?:$_)/ } keys(%$filters));
+if (exists($opts->{"P"})) {
+  print pattern2regex($opts->{"P"}) . "\n";
+  finish_and_exit(0);
+}
+
 
 my $state;
 my $storage; # Match-level storage by File/Key
@@ -379,15 +385,14 @@ sub meta2string {
     $count = 0;
     #map { $count += $meta =~ s/%($_)%/$values->{$_}/g; } keys(%MATCH);
 
-    # XXX: This will be undef if the key in $values is null, should that ever happen?
-    map {
-      my $regex = qr/%(\Q$_\E(?::\w+)?)(?:\|((?:[^,|%]+)(?:[,|][^,|%]+)*))?%/;
-      while ($meta =~ m/$regex/) {
-        $count++;
-        my $data = filter($values, $1, $2);
-        $meta =~ s/$regex/$data/;
-      }
-    } (keys(%MATCH), '=LINE', '=MATCH', '=FILE');
+    # XXX: This will be undef if the key in $values is null, should that ever
+    # happen?
+    while ($meta =~ m/$meta2string_re/) {
+      my $data = filter($values, $1, $2);
+      $meta =~ s/$meta2string_re/$data/;
+      $count++;
+    }
+
     $rounds++;
     if ($rounds > 20) {
       debug(0, "Deep recursion translating '$orig'");
@@ -402,7 +407,7 @@ sub meta2string {
 sub filter {
   my ($values, $key, $opts) = @_;
   my $ret = $values->{$key};
-  $opts = "" unless (defined($opts));
+  return $ret unless ($opts);
 
   # Wrapper function to call a dispatch function and set $_
   local *w = sub { 
@@ -413,8 +418,7 @@ sub filter {
   };
 
   # Apply filters in sequence until we run out of filters to apply.
-  my $re = join("|", map { qr/(?:$_)/ } keys(%$filters));
-  while ($opts =~ s/^$re//) {
+  while ($opts =~ s/^$filter_re//) {
     my ($key) = grep { $& =~ m/$_/ } keys(%$filters);
     $ret = w($key, $ret);
     last unless $opts =~ s/^\|//;
