@@ -121,9 +121,9 @@ sub analyze {
         ##print "Skipping past (endpos $+[1]): $&\n";
       #}
 
-      # match %FOO~/[^A-z/% - 
+      # match %FOO~/[^A-z]/% - 
       # Make sure this token is not just a plain word
-      my $regex = pattern2regex("%$name~/[^A-z0-9]/%");
+      my $regex = pattern2regex("%$name~/[^A-z0-9-]/%");
       #print "   -> against $name\n";
       #print "   // $regex\n";
       #print "   ... " . substr($line, pos($line)) . "\n";

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 #import Levenshtein as dist
-import difflib
 import sys
 import re
 
@@ -12,10 +11,11 @@ import wordlist
 ifile = sys.argv[1]
 input = file(ifile)
 
-differ = difflib.Differ()
 known_patterns = []
 
-def mkpat(word):
+def mkpat(word, type=None):
+  if type == "BIGWORD":
+    return "%NOTSPACE%"
   try:
     x = int(word)
     return "%INT%"
@@ -28,13 +28,10 @@ def mkreg(we, diffs):
   offset = 0
   string = we._string
   for i in diffs:
-    we[i] = mkpat(we[i].word)
+    (i, type) = i
+    we[i] = mkpat(we[i].word, type)
   return str(we)
 
-#we = wordlist.WordExtractor("foo bar 12 hello 34 blah")
-#print mkreg(we, [0,2,3])
-#sys.exit(1)
-  
 def is_known_pattern(string):
   for reg in known_patterns:
     match = reg.match(line)
@@ -46,13 +43,15 @@ def find_differences(a, b):
   diff_indeces = []
   if len(a) != len(b):
     return []
-
   i = 0
-  while i < len(a):
-    if (a[i] != b[i]):
-      diff_indeces.append(i)
+  for ai, bi in zip(a, b):
+    if (ai != bi):
+      # If ai or bi is a %FOO% pattern, we should use %BIGWORD%, not %WORD%
+      type = "WORD"
+      if ai[0] == "%" or bi[0] == "%":
+        type = "BIGWORD"
+      diff_indeces.append([i, type])
     i += 1
-
   return diff_indeces
 
 lineno = 0
