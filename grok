@@ -178,7 +178,7 @@ setup($config);
 
 my @pat_re_list = map("\Q$_\E", (keys(%MATCH), '=LINE', '=MATCH', '=FILE'));
 my $patnames = join("|", @pat_re_list);
-my $meta2string_re = qr/%($patnames(?::\w+)?)(?:\|((?:[^,|%]+)(?:[,|][^,|%]+)*))?%/;
+my $meta2string_re = qr/%((?:$patnames)(?::\w+)?)(?:\|((?:[^,|%]+)(?:[,|][^,|%]+)*))?%/;
 
 my $filter_re ||= join("|", map { qr/(?:$_)/ } keys(%$filters));
 if (exists($opts->{"P"})) {
