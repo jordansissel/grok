@@ -1,5 +1,6 @@
 + FILES
 + INSTALL
++ CHANGELIST
 + LICENSE
 + Makefile
 + conf.lex
