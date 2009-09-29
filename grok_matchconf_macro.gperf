@@ -1,0 +1,25 @@
+%{
+#define _GPERF_
+#include "grok_matchconf_macro.h"
+%}
+%define hash-function-name _patname_macro_hash
+%define lookup-function-name patname2macro
+%define slot-name str
+%readonly-tables
+%language=ANSI-C
+%compare-strncmp
+%switch=1
+%struct-type
+struct strmacro {
+  const char *str;
+  int code;
+};
+%%
+@LINE,VALUE_LINE
+@MATCH,VALUE_MATCH
+@JSON_COMPLEX,VALUE_JSON_COMPLEX
+@JSON,VALUE_JSON_SIMPLE
+@START,VALUE_START
+@END,VALUE_END
+@LENGTH,VALUE_LENGTH
+%%

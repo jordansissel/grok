@@ -1,6 +1,0 @@
-catlist "input/catlist.?" {
-  type "everything" {
-    match = "%DATA%";
-    reaction = { print meta2string("%=FILE%: %=LINE%\n", $v); };
-  };
-};

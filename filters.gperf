@@ -1,0 +1,61 @@
+%{
+#define _GPERF_
+#include "grok.h"
+#include "grok_logging.h"
+#include "stringhelper.h"
+
+int filter_jsonencode(grok_match_t *gm, char **value, int *value_len,
+                      int *value_size);
+int filter_shellescape(grok_match_t *gm, char **value, int *value_len,
+                      int *value_size);
+int filter_shelldqescape(grok_match_t *gm, char **value, int *value_len,
+                      int *value_size);
+
+%}
+%define hash-function-name _string_filter_hash
+%define lookup-function-name string_filter_lookup
+%define slot-name name
+%readonly-tables
+%language=ANSI-C
+%compare-strncmp
+%switch=1
+%struct-type
+struct filter {
+  const char *name;
+  int (*func)(grok_match_t *gm, char **value, int *value_len,
+              int *value_size); 
+};            
+
+%%
+jsonencode,filter_jsonencode
+shellescape,filter_shellescape
+shelldqescape,filter_shelldqescape
+%%
+
+int filter_jsonencode(grok_match_t *gm, char **value, int *value_len,
+                      int *value_size) {
+  grok_log(gm->grok, LOG_REACTION, "filter executing");
+
+  /* json.org says " \ and / should be escaped, in addition to 
+   * contol characters (newline, etc).
+   *
+   * Some validators will pass non-escaped forward slashes (solidus) but
+   * we'll escape it anyway. */
+  string_escape(value, value_len, value_size, "\\\"/", 3, ESCAPE_LIKE_C);
+  string_escape(value, value_len, value_size, "", 0,
+                ESCAPE_NONPRINTABLE | ESCAPE_UNICODE);
+  return 0;
+}
+
+int filter_shellescape(grok_match_t *gm, char **value, int *value_len,
+                       int *value_size) {
+  grok_log(gm->grok, LOG_REACTION, "filter executing");
+  string_escape(value, value_len, value_size, "`^()&{}[]$*?!|;'\"\\", -1, ESCAPE_LIKE_C);
+}
+
+int filter_shelldqescape(grok_match_t *gm, char **value, int *value_len,
+                       int *value_size) {
+  grok_log(gm->grok, LOG_REACTION, "filter executing");
+  string_escape(value, value_len, value_size, "\\`$\"", -1, ESCAPE_LIKE_C);
+}
+

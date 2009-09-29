@@ -1,7 +1,0 @@
-catlist "input/thresholds" {
-  type "foo" {
-    match = "one";
-    threshold = 3;
-    reaction = "echo threshold hit";
-  };
-};
