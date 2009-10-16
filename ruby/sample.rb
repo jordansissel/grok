@@ -15,8 +15,9 @@ matches = [
   #"%{SYSLOGBASE} Accepted %{NOTSPACE:method} for %{DATA:user} from %{IPORHOST:client} port %{INT:port}",
   #"%{SYSLOGBASE} Did not receive identification string from %{IPORHOST:client}",
   #"%{SYSLOGBASE} error: PAM: authentication error for %{DATA:user} from %{IPORHOST:client}",
+  "%{SYSLOGBASE} .*"
   #"%{COMBINEDAPACHELOG}",
-  "%{UNINDEXED}hello (?=%{GREEDYDATA})%{WORD}"
+  #"%{UNINDEXED}hello (?=%{GREEDYDATA})%{WORD}"
   
   #"( *%{DATA:key}:%{NOTSPACE:value})+"
 ]
@@ -35,7 +36,12 @@ $stdin.each do |line|
   groks.each do |grok|
     m = grok.match(line)
     if m
-      pp m.captures
+      #pp m.captures
+      data = {}
+      m.each_capture do |key, value|
+        data[key] = value
+      end
+      pp data
       #bytes += line.length
       break
     end

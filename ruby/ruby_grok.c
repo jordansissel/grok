@@ -106,12 +106,32 @@ VALUE rGrok_add_patterns_from_file(VALUE self, VALUE path) {
   return Qnil;
 }
 
+VALUE rGrok_expanded_pattern(VALUE self) {
+  grok_t *grok = NULL;
+  VALUE expanded_pattern;
+
+  Data_Get_Struct(self, grok_t, grok);
+  expanded_pattern = rb_str_new2(grok->full_pattern);
+  return expanded_pattern;
+}
+
+VALUE rGrok_pattern(VALUE self) {
+  grok_t *grok = NULL;
+  VALUE pattern;
+
+  Data_Get_Struct(self, grok_t, grok);
+  pattern = rb_str_new2(grok->pattern);
+  return pattern;
+}
+
 void Init_Grok() {
   cGrok = rb_define_class("Grok", rb_cObject);
   rb_define_singleton_method(cGrok, "new", rGrok_new, 0);
   rb_define_method(cGrok, "initialize", rGrok_initialize, 0);
   rb_define_method(cGrok, "compile", rGrok_compile, 1);
   rb_define_method(cGrok, "match", rGrok_match, 1);
+  rb_define_method(cGrok, "expanded_pattern", rGrok_expanded_pattern, 0);
+  rb_define_method(cGrok, "pattern", rGrok_pattern, 0);
   rb_define_method(cGrok, "add_pattern", rGrok_add_pattern, 2);
   rb_define_method(cGrok, "add_patterns_from_file",
                    rGrok_add_patterns_from_file, 1);
