@@ -5,6 +5,7 @@
 #include "grok_input.h"
 #include "grok_program.h"
 #include "grok_matchconf.h"
+#include <stdio.h>
 
 typedef struct grok_matchconf grok_matchconf_t;
 typedef struct grok_reaction grok_reaction_t;

@@ -5,6 +5,9 @@
 + Makefile
 + conf.lex
 + conf.y
++ conf.tab.c
++ conf.tab.h
++ conf.yy.c
 + filters.gperf
 + filters.h
 + grok-patterns
