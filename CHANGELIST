@@ -1,3 +1,9 @@
+20091019:
+  - include pregenerated bison/flex output since gnu flex varies much from
+  non-gnu flex, and many important platforms don't have gnu flex available
+  easily from packages (freebsd, centos, etc) but come with the other flex.
+
+  No functional changes.
 
 20090928:
   - perl grok is dead. Long live new grok.
