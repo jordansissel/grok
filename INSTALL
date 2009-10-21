@@ -30,5 +30,9 @@ FreeBSD Notes:
   libraries are. There's an example in the Makefile under 'For FreeBSD' for
   getting the right bdb library linked.
 
+CentOS Notes:
+  CentOS has an old version of pcre available, too old, in fact. Building a
+  new rpm from a more recent Fedora pcre SRPM has worked well for me.
+
 Getting help:
   The mailing list is grok-users@googlegroups.com
