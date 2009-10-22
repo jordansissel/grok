@@ -7,47 +7,29 @@
 
 int grok_pattern_add(grok_t *grok, const char *name, size_t name_len,
                       const char *regexp, size_t regexp_len) {
-  DB *patterns = grok->patterns;
-  DBT key, value;
-  memset(&key, 0, sizeof(DBT));
-  memset(&value, 0, sizeof(DBT));
+  TCTREE *patterns = grok->patterns;
 
   grok_log(grok, LOG_PATTERNS, "Adding new pattern '%.*s' => '%.*s'",
            name_len, name, regexp_len, regexp);
 
-  key.data = (void *)name;
-  key.size = name_len;
-  value.data = (void *)regexp;
-  value.size = regexp_len;
-
-  patterns->put(patterns, NULL, &key, &value, 0);
-
+  tctreeput(patterns, name, name_len, regexp, regexp_len);
   return GROK_OK;
 }
 
 int grok_pattern_find(grok_t *grok, const char *name, size_t name_len,
-                      char **regexp, size_t *regexp_len) {
-  DB *patterns = grok->patterns;
-  DBT key, value;
-  int ret;
-  memset(&key, 0, sizeof(DBT));
-  memset(&value, 0, sizeof(DBT));
+                      const char **regexp, size_t *regexp_len) {
+  TCTREE *patterns = grok->patterns;
+  *regexp = tctreeget(patterns, name, name_len, (int*) regexp_len);
 
-  key.data = (void *)name;
-  key.size = name_len;
-  ret = patterns->get(patterns, NULL, &key, &value, 0);
-  if (ret != 0) {
+  grok_log(grok, LOG_PATTERNS, "Searching for pattern '%s' (%s): %.*s",
+           name, *regexp == NULL ? "found" : "not found", *regexp_len, *regexp);
+  if (*regexp == NULL) {
     grok_log(grok, LOG_PATTERNS, "Searching for pattern '%s': not found", name);
     *regexp = NULL;
     *regexp_len = 0;
     return GROK_ERROR_PATTERN_NOT_FOUND;
   }
 
-  grok_log(grok, LOG_PATTERNS, "Searching for pattern '%s': %.*s",
-           name, value.size, value.data);
-  *regexp = malloc(value.size);
-  memcpy(*regexp, value.data, value.size);
-  *regexp_len = value.size;
   return GROK_OK;
 }
 

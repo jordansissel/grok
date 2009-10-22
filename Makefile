@@ -5,8 +5,8 @@ CFLAGS+=-pipe -fPIC
 #CFLAGS+=-pg -g
 CFLAGS+=-O2
 #CFLAGS+=-O3
-LDFLAGS+=-lpcre -levent -rdynamic
-#LDFLAGS+=-pg -g
+LDFLAGS+=-lpcre -levent -rdynamic -ltokyocabinet
+#LDFLAGS+=-pg -g 
 
 # Sane includes
 CFLAGS+=-I/usr/local/include

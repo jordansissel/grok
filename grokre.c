@@ -33,7 +33,7 @@ void grok_free(grok_t *grok) {
     free(grok->pcre_capture_vector);
 
   if (grok->patterns != NULL)
-    grok->patterns->close(grok->patterns, 0);
+    tctreedel(grok->patterns);
 
   if (grok->captures_by_id != NULL)
     grok->captures_by_id->close(grok->captures_by_id, 0);
@@ -155,7 +155,7 @@ char *grok_pattern_expand(grok_t *grok) {
   while (pcre_exec(g_pattern_re, NULL, full_pattern, full_len, offset, 
                    0, capture_vector, g_pattern_num_captures * 3) >= 0) {
     int start, end, matchlen;
-    char *pattern_regex;
+    const char *pattern_regex;
     int patname_len;
     size_t regexp_len;
 
@@ -256,7 +256,7 @@ char *grok_pattern_expand(grok_t *grok) {
       pcre_free_substring(patname);
       patname = NULL;
     }
-    free(pattern_regex);
+    //free(pattern_regex);
   }
 
   /* Unescape any "\%" strings found */

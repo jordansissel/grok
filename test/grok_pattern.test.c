@@ -3,21 +3,23 @@
 
 void test_grok_pattern_add_and_find_work(void) {
   INIT;
-  char *regexp;
-  size_t len;
+  const char *regexp = NULL;
+  size_t len = 0;
 
   grok_pattern_add(&grok, "WORD", 5, "\\w+", 3);
   grok_pattern_add(&grok, "TEST", 5, "TEST", 4);
 
   grok_pattern_find(&grok, "WORD", 5, &regexp, &len);
+  CU_ASSERT(regexp != NULL);
   CU_ASSERT(len == 3);
   CU_ASSERT(!strncmp(regexp, "\\w+", len));
-  free(regexp);
+  //free(regexp);
 
   grok_pattern_find(&grok, "TEST", 5, &regexp, &len);
+  CU_ASSERT(regexp != NULL);
   CU_ASSERT(len == 4);
   CU_ASSERT(!strncmp(regexp, "TEST", len));
-  free(regexp);
+  //free(regexp);
 
   CLEANUP;
 }

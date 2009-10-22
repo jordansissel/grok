@@ -27,9 +27,7 @@ void grok_init(grok_t *grok) {
   grok->logdepth = 0;
 
 #ifndef GROK_TEST_NO_PATTERNS
-  db_create(&grok->patterns, NULL, 0);
-  grok->patterns->open(grok->patterns, NULL, NULL, "patterns",
-                       DB_BTREE, DB_CREATE, 0);
+  grok->patterns = tctreenew();
 #endif /* GROK_TEST_NO_PATTERNS */
 
 #ifndef GROK_TEST_NO_CAPTURE

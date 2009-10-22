@@ -2,6 +2,10 @@
 #define _GROK_H_
 
 #include <pcre.h>
+#include <tcutil.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <db.h>
 
 typedef struct grok grok_t;
@@ -12,7 +16,8 @@ typedef struct grok_pattern {
 } grok_pattern_t;
 
 struct grok {
-  DB *patterns;
+  //DB *patterns;
+  TCTREE *patterns;
   
   /* These are initialized when grok_compile is called */
   pcre *re;
@@ -22,6 +27,7 @@ struct grok {
   int pcre_num_captures;
   
   /* Data storage for named-capture (grok capture) information */
+  //TCTREE *captures_by_id;
   DB *captures_by_id;
   DB *captures_by_name;
   DB *captures_by_subname;
