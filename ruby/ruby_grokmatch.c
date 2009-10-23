@@ -86,6 +86,7 @@ VALUE rGrokMatch_each_capture(VALUE self) {
   }
 
   grok_match_walk_end(gm);
+  return Qtrue;
 }
 
 VALUE rGrokMatch_captures(VALUE self) {
@@ -96,7 +97,7 @@ VALUE rGrokMatch_captures(VALUE self) {
   id_length = rb_intern("length");
   len = rb_funcall(captures, id_length, 0);
   if (FIX2INT(len) > 0) {
-    printf("Shortcircuit, captures.length: %d > 0\n", FIX2INT(len));
+    /* Already have computed the captures hash, just return it */
     return captures;
   }
 
@@ -136,7 +137,7 @@ VALUE rGrokMatch_captures(VALUE self) {
     key = rb_str_new(name, namelen);
     value = rb_str_new(data, datalen);
 
-    VALUE caparray = rb_hash_lookup(captures, key);
+    VALUE caparray = rb_hash_aref(captures, key);
     if (caparray == Qnil) {
       caparray = rb_ary_new();
       rb_hash_aset(captures, key, caparray);

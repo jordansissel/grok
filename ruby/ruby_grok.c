@@ -51,7 +51,6 @@ VALUE rGrok_match(VALUE self, VALUE input) {
   char *c_input = NULL;
   long len = 0;
   int ret = 0;
-  VALUE match = Qnil;
 
   Data_Get_Struct(self, grok_t, grok);
   c_input = rb_str2cstr(input, &len);

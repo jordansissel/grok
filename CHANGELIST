@@ -1,3 +1,10 @@
+20091022:
+  - Convert to using tokyocabinet instead of berkeley db.
+    * Berkeley DB isn't easy to target across platforms (4.x versions vary wildly in bugs)
+    * tokyo cabinet should be faster
+    * tokyo cabinet is less code to write, and slightly more readable in the author's opinion.
+    * we don't have to serialize with xdr anymore
+  
 20091019:
   - include pregenerated bison/flex output since gnu flex varies much from
   non-gnu flex, and many important platforms don't have gnu flex available
