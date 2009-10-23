@@ -361,13 +361,12 @@ static void grok_study_capture_map(grok_t *grok) {
   pcre_fullinfo(grok->re, NULL, PCRE_INFO_NAMETABLE, &nametable);
 
   for (i = 0; i < nametable_size; i++) {
-    int ret;
     offset = i * nametable_entrysize;
     stringnum = (nametable[offset] << 8) + nametable[offset + 1];
     sscanf(nametable + offset + 2, CAPTURE_FORMAT, &capture_id);
     grok_log(grok, LOG_COMPILE, "Studying capture %d", capture_id);
     gct = (grok_capture *)grok_capture_get_by_id(grok, capture_id);
-    assert(ret == 0);
+    assert(gct != NULL);
     gct->pcre_capture_number = stringnum;
 
     /* update the database with the new data */

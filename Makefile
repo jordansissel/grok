@@ -2,11 +2,9 @@ PACKAGE=grok
 PREFIX=/usr/local
 
 CFLAGS+=-pipe -fPIC
-CFLAGS+=-pg -g
 CFLAGS+=-O2
-#CFLAGS+=-O3
+#CFLAGS+=-pg -g
 LDFLAGS+=-lpcre -levent -rdynamic -ltokyocabinet
-#LDFLAGS+=-pg -g 
 
 # Sane includes
 CFLAGS+=-I/usr/local/include

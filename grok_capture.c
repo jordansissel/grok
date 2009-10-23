@@ -50,10 +50,10 @@ void grok_capture_add(grok_t *grok, const grok_capture *gct) {
                                       gct->name_len, &unused_size);
   if (by_name_list == NULL) {
     by_name_list = tclistnew();
-    tctreeput(grok->captures_by_name, gct->name, gct->name_len,
-              by_name_list, sizeof(TCLIST));
   }
   tclistpush(by_name_list, gct, sizeof(grok_capture));
+  tctreeput(grok->captures_by_name, gct->name, gct->name_len,
+            by_name_list, sizeof(TCLIST));
   /* end captures_by_name */
 
   /* captures_by_subname */
@@ -63,10 +63,10 @@ void grok_capture_add(grok_t *grok, const grok_capture *gct) {
                                          gct->subname_len, &unused_size);
   if (by_subname_list == NULL) {
     by_subname_list = tclistnew();
-    tctreeput(grok->captures_by_subname, gct->subname, gct->subname_len,
-              by_subname_list, sizeof(TCLIST));
   }
   tclistpush(by_subname_list, gct, sizeof(grok_capture));
+  tctreeput(grok->captures_by_subname, gct->subname, gct->subname_len,
+            by_subname_list, sizeof(TCLIST));
   /* end captures_by_subname */
 }
 

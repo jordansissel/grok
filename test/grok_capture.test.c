@@ -12,6 +12,7 @@ void test_grok_capture_get_by_id(void) {
 
   src.id = 9;
   src.name = "Test";
+  src.name_len = strlen(src.name);
   src.pcre_capture_number = 15;
   grok_capture_add(&grok, &src);
   dst = grok_capture_get_by_id(&grok, src.id);
@@ -32,6 +33,7 @@ void test_grok_capture_get_by_name(void) {
 
   src.id = 9;
   src.name = "Test";
+  src.name_len = strlen(src.name);
   src.pcre_capture_number = 15;
   grok_capture_add(&grok, &src);
   dst = grok_capture_get_by_name(&grok, src.name);
