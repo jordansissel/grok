@@ -200,13 +200,20 @@ void grok_capture_walk_init(grok_t *grok) {
 
 const grok_capture *grok_capture_walk_next(grok_t *grok) {
   int ret;
-  int unused_size;
+  int id_size;
+  int gct_size;
   int *id;
   const grok_capture *gct;
 
-  id = (int *)tctreeiternext(grok->captures_by_id, &unused_size);
-  gct = (grok_capture *)tctreeget(grok->captures_by_id, id, sizeof(id),
-                                  &unused_size);
+  id = (int *)tctreeiternext(grok->captures_by_id, &id_size);
+  if (id == NULL) {
+    grok_log(grok, LOG_CAPTURE, "walknext null");
+    return NULL;
+  }
+    grok_log(grok, LOG_CAPTURE, "walknext ok %d", *id);
+
+  gct = (grok_capture *)tctreeget(grok->captures_by_id, id, id_size,
+                                  &gct_size);
   return gct;
 }
 

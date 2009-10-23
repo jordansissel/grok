@@ -49,8 +49,6 @@ int grok_match_walk_next(const grok_match_t *gm,
   int ret;
   gct = grok_capture_walk_next(gm->grok);
   if (gct == NULL) {
-    //grok_log(gm->grok, LOG_MATCH,
-             //"grok_capture_walk_next returned nonzero: %d", ret);
     return 1;
   }
 
@@ -64,7 +62,6 @@ int grok_match_walk_next(const grok_match_t *gm,
            *namelen, *name, start, end, gm->subject);
   *substr = gm->subject + start;
   *substrlen = (end - start);
-  //grok_capture_free(&gct);
 
   return 0;
 }

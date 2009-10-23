@@ -24,7 +24,6 @@ matches = [
 
 groks = matches.collect do |m|
   g = Grok.new
-  #patterns.each { |k,v|  g.add_pattern(k,v) }
   g.add_patterns_from_file("../grok-patterns")
   g.compile(m)
   g
@@ -36,12 +35,12 @@ $stdin.each do |line|
   groks.each do |grok|
     m = grok.match(line)
     if m
-      #pp m.captures
-      data = {}
-      m.each_capture do |key, value|
-        data[key] = value
-      end
-      pp data
+      #data = Hash.new { |h,k| h[k] = Array.new }
+      #m.each_capture do |key, value|
+        #data[key] << value
+      #end
+      #pp data
+      pp m.captures
       #bytes += line.length
       break
     end

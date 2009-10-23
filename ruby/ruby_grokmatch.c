@@ -46,7 +46,6 @@ VALUE rGrokMatch_each_capture(VALUE self) {
   char *name;
   const char *data;
   int namelen, datalen;
-  void *handle;
   grok_match_t *gm;
   VALUE captures;
   ID pred_include;
@@ -54,9 +53,8 @@ VALUE rGrokMatch_each_capture(VALUE self) {
   Data_Get_Struct(self, grok_match_t, gm);
   captures = rb_iv_get(self, "@captures");
   pred_include = rb_intern("include?");
-  handle = grok_match_walk_init(gm);
-  while (grok_match_walk_next(gm, handle, &name, &namelen,
-                              &data, &datalen) == 0) {
+  grok_match_walk_init(gm);
+  while (grok_match_walk_next(gm, &name, &namelen, &data, &datalen) == 0) {
     VALUE key, value;
 
 #ifdef _TRIM_KEY_EXCESS_IN_C_
@@ -87,26 +85,33 @@ VALUE rGrokMatch_each_capture(VALUE self) {
     //rb_ary_push(ary, value);
   }
 
-  grok_match_walk_end(gm, handle);
+  grok_match_walk_end(gm);
 }
 
-VALUE rGrokMatch_to_hash(VALUE self) {
+VALUE rGrokMatch_captures(VALUE self) {
+  VALUE captures = rb_iv_get(self, "@captures");
+  VALUE len;
+  VALUE id_length;
+
+  id_length = rb_intern("length");
+  len = rb_funcall(captures, id_length, 0);
+  if (FIX2INT(len) > 0) {
+    printf("Shortcircuit, captures.length: %d > 0\n", FIX2INT(len));
+    return captures;
+  }
+
+  /* haven't generated captures hash yet, do it now. */
   char *name;
   const char *data;
   int namelen, datalen;
-  void *handle;
   grok_match_t *gm;
-  VALUE captures;
   ID pred_include;
 
-  captures = rb_iv_get(self, "@captures");
-
+  Data_Get_Struct(self, grok_match_t, gm);
   pred_include = rb_intern("include?");
-  handle = grok_match_walk_init(gm);
-  while (grok_match_walk_next(gm, handle, &name, &namelen,
-                              &data, &datalen) == 0) {
+  grok_match_walk_init(gm);
+  while (grok_match_walk_next(gm, &name, &namelen, &data, &datalen) == 0) {
     VALUE key, value;
-    VALUE ary;
 
 #ifdef _TRIM_KEY_EXCESS_IN_C_
   /* This section will skip captures of %{FOO} and rename captures of
@@ -130,22 +135,18 @@ VALUE rGrokMatch_to_hash(VALUE self) {
 
     key = rb_str_new(name, namelen);
     value = rb_str_new(data, datalen);
-    if (rb_funcall(captures, pred_include, 1, key) == Qfalse) {
-      rb_hash_aset(captures, key, rb_ary_new());
+
+    VALUE caparray = rb_hash_lookup(captures, key);
+    if (caparray == Qnil) {
+      caparray = rb_ary_new();
+      rb_hash_aset(captures, key, caparray);
     }
 
-    //ary = rb_hash_aref(captures, key);
-    ary = rb_hash_lookup(captures, key);
-    rb_ary_push(ary, value);
+    rb_ary_push(caparray, value);
   }
 
-  grok_match_walk_end(gm, handle);
-
-  return Qtrue;
-}
-
-VALUE rGrokMatch_captures(VALUE self) {
-  return rb_iv_get(self, "@captures");
+  grok_match_walk_end(gm);
+  return captures;
 }
 
 VALUE rGrokMatch_start(VALUE self) {
