@@ -28,10 +28,10 @@ struct grok {
   
   /* Data storage for named-capture (grok capture) information */
   //TCTREE *captures_by_id;
-  DB *captures_by_id;
-  DB *captures_by_name;
-  DB *captures_by_subname;
-  DB *captures_by_capture_number;
+  TCTREE *captures_by_id;
+  TCTREE *captures_by_name;
+  TCTREE *captures_by_subname;
+  TCTREE *captures_by_capture_number;
   int max_capture_num;
   
   /* PCRE pattern compilation errors */

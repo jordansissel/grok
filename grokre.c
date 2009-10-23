@@ -35,17 +35,42 @@ void grok_free(grok_t *grok) {
   if (grok->patterns != NULL)
     tctreedel(grok->patterns);
 
-  if (grok->captures_by_id != NULL)
-    grok->captures_by_id->close(grok->captures_by_id, 0);
+  if (grok->captures_by_name != NULL) {
+    /* remove tclists */
+    //tctreeiterinit(grok->captures_by_name);
+    //const char *key;
+    //int unused_size;
+    //int key_size;
+    //while (key = tctreeiternext(grok->captures_by_name, &key_size)) {
+      //const TCLIST *by_name_list = tctreeget(grok->captures_by_name,
+                                             //key, key_size, &unused_size);
+      //tclistdel((TCLIST *)by_name_list);
+    //}
+    tctreedel(grok->captures_by_name);
+  }
 
-  if (grok->captures_by_name != NULL)
-    grok->captures_by_name->close(grok->captures_by_name, 0);
+  if (grok->captures_by_subname != NULL) {
+    /* remove tclists */
+    //tctreeiterinit(grok->captures_by_subname);
+    //const char *key;
+    //int unused_size;
+    //int key_size;
+    //while (key = tctreeiternext(grok->captures_by_subname, &key_size)) {
+      //////const TCLIST *by_subname_list = tctreeget(grok->captures_by_subname,
+                                                //key, key_size, &unused_size);
+      //tclistdel((TCLIST *)by_subname_list);
+    //}
+    tctreedel(grok->captures_by_subname);
+  }
 
-  if (grok->captures_by_subname != NULL)
-    grok->captures_by_subname->close(grok->captures_by_subname, 0);
+  if (grok->captures_by_capture_number != NULL) {
+    tctreedel(grok->captures_by_capture_number);
+  }
 
-  if (grok->captures_by_capture_number != NULL)
-    grok->captures_by_capture_number->close(grok->captures_by_capture_number, 0);
+  if (grok->captures_by_id != NULL) {
+    tctreedel(grok->captures_by_id);
+  }
+
 }
 
 int grok_compile(grok_t *grok, const char *pattern) {
@@ -178,8 +203,7 @@ char *grok_pattern_expand(grok_t *grok) {
       int ret;
       const char *longname = NULL;
       const char *subname = NULL;
-      grok_capture gct;
-      grok_capture_init(grok, &gct);
+      grok_capture *gct = calloc(1, sizeof(grok_capture));;
 
       /* XXX: Change this to not use pcre_get_substring so we can skip a
        * malloc step? */
@@ -191,19 +215,15 @@ char *grok_pattern_expand(grok_t *grok) {
       snprintf(capture_id_str, CAPTURE_ID_LEN + 1, CAPTURE_FORMAT, capture_id);
 
       /* Add this capture to the list of captures */
-      gct.id = capture_id;
-      gct.name = (char *)longname; /* XXX: CONST PROBLEM */
-      gct.name_len = strlen(gct.name);
-      gct.subname = (char *)subname;
-      gct.subname_len = strlen(gct.subname);
-      ret = grok_capture_add(grok, &gct);
-      if (ret != 0) {
-        /* Some error occured while adding this capture, fail. */
-        free(full_pattern);
-        return NULL;
-      }
-      pcre_free_substring(longname);
-      pcre_free_substring(subname);
+      gct->id = capture_id;
+      gct->name = (char *)longname; /* XXX: CONST PROBLEM */
+      gct->name_len = strlen(gct->name);
+      gct->subname = (char *)subname;
+      gct->subname_len = strlen(gct->subname);
+      grok_capture_add(grok, gct);
+
+      //pcre_free_substring(longname);
+      //pcre_free_substring(subname);
 
       /* Invariant, full_pattern actual len must always be full_len */
       assert(strlen(full_pattern) == full_len);
@@ -277,20 +297,21 @@ char *grok_pattern_expand(grok_t *grok) {
 
 static void grok_capture_add_predicate(grok_t *grok, int capture_id,
                                        const char *predicate, int predicate_len) {
-  grok_capture gct;
-  grok_capture_init(grok, &gct);
+  grok_capture *gct;
   int offset = 0;
 
   grok_log(grok, LOG_PREDICATE, "Adding predicate '%.*s' to capture %d",
            predicate_len, predicate, capture_id);
 
-  if (grok_capture_get_by_id(grok, capture_id, &gct) != 0) {
+  gct = (grok_capture *)grok_capture_get_by_id(grok, capture_id);
+  if (gct == NULL) {
     grok_log(grok, LOG_PREDICATE, "Failure to find capture id %d", capture_id);
+    return;
   }
 
   /* Compile the predicate into something useful */
   /* So far, predicates are just an operation and an argument */
-  /* predicate_func(capture_str, args) ??? */
+  /* TODO(sissel): add predicate_func(capture_str, args) ??? */
 
   /* skip leading whitespace, use a loop since 'strspn' doesn't take a len */
   while (isspace(predicate[offset]) && offset < predicate_len) {
@@ -302,17 +323,17 @@ static void grok_capture_add_predicate(grok_t *grok, int capture_id,
 
   if (predicate_len > 2) {
     if (!strncmp(predicate, "=~", 2) || !strncmp(predicate, "!~", 2)) {
-      grok_predicate_regexp_init(grok, &gct, predicate, predicate_len);
+      grok_predicate_regexp_init(grok, gct, predicate, predicate_len);
       return;
     } else if ((predicate[0] == '$') 
                && (strchr("!<>=", predicate[1]) != NULL)) {
-      grok_predicate_strcompare_init(grok, &gct, predicate, predicate_len);
+      grok_predicate_strcompare_init(grok, gct, predicate, predicate_len);
       return;
     }
   } 
   if (predicate_len > 1) {
     if (strchr("!<>=", predicate[0]) != NULL) {
-      grok_predicate_numcompare_init(grok, &gct, predicate, predicate_len);
+      grok_predicate_numcompare_init(grok, gct, predicate, predicate_len);
     }  else {
       fprintf(stderr, "Invalid predicate: '%.*s'\n", predicate_len, predicate);
     }
@@ -321,12 +342,13 @@ static void grok_capture_add_predicate(grok_t *grok, int capture_id,
     fprintf(stderr, "Invalid predicate: '%.*s'\n", predicate_len, predicate);
   }
 
-  grok_capture_free(&gct);
+  /* update the database with our modified grok_capture */
+  grok_capture_add(grok, gct);
 }
 
 static void grok_study_capture_map(grok_t *grok) {
   char *nametable;
-  grok_capture gct;
+  grok_capture *gct;
   int nametable_size;
   int nametable_entrysize;
   int i = 0;
@@ -340,17 +362,15 @@ static void grok_study_capture_map(grok_t *grok) {
 
   for (i = 0; i < nametable_size; i++) {
     int ret;
-    grok_capture_init(grok, &gct);
     offset = i * nametable_entrysize;
     stringnum = (nametable[offset] << 8) + nametable[offset + 1];
     sscanf(nametable + offset + 2, CAPTURE_FORMAT, &capture_id);
     grok_log(grok, LOG_COMPILE, "Studying capture %d", capture_id);
-    ret = grok_capture_get_by_id(grok, capture_id, &gct);
+    gct = (grok_capture *)grok_capture_get_by_id(grok, capture_id);
     assert(ret == 0);
-    gct.pcre_capture_number = stringnum;
+    gct->pcre_capture_number = stringnum;
 
     /* update the database with the new data */
-    grok_capture_add(grok, &gct);
-    grok_capture_free(&gct);
+    grok_capture_add(grok, gct);
   }
 }

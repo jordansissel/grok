@@ -14,17 +14,18 @@ void grok_capture_init(grok_t *grok, grok_capture *gct) {
   gct->pcre_capture_number = CAPTURE_NUMBER_NOT_SET;
 
   gct->name = NULL;
+  gct->name_len = 0;
   gct->subname = NULL;
+  gct->subname_len = 0;
   gct->pattern = NULL;
+  gct->pattern_len = 0;
   gct->predicate_lib = NULL;
   gct->predicate_func_name = NULL;
   gct->extra.extra_len = 0;
   gct->extra.extra_val = NULL;
 }
 
-int grok_capture_add(grok_t *grok, grok_capture *gct) {
-  DB *db = grok->captures_by_id;
-  DBT key, value;
+void grok_capture_add(grok_t *grok, const grok_capture *gct) {
   int ret;
 
   grok_log(grok, LOG_CAPTURE, 
@@ -32,77 +33,87 @@ int grok_capture_add(grok_t *grok, grok_capture *gct) {
            gct->name, gct->id, gct->pcre_capture_number);
 
   /* Primary key is id */
-  memset(&key, 0, sizeof(key));
-  memset(&value, 0, sizeof(value));
-  key.data = &(gct->id);
-  key.size = sizeof(gct->id);
+  tctreeput(grok->captures_by_id, &(gct->id), sizeof(gct->id),
+            gct, sizeof(grok_capture));
+  /* Tokyo Cabinet doesn't seem to support 'secondary indexes' like BDB does,
+   * so let's manually update all the other 'captures_by_*' trees */
+  int unused_size;
+  tctreeput(grok->captures_by_capture_number, &(gct->pcre_capture_number), 
+            sizeof(gct->pcre_capture_number), gct, sizeof(grok_capture));
 
-  _grok_capture_encode(gct, (char **)&value.data, &value.size);
-  ret = db->put(db, NULL, &key, &value, 0);
-  free(value.data);
-
-  if (ret != 0) {
-    db->err(db, ret, "grok_capture_add failed");
+  /* TCTREE doesn't permit dups, so let's make the structure a tree of arrays,
+   * keyed on a string. */
+  /* captures_by_name */
+  TCLIST *by_name_list;
+  by_name_list = (TCLIST *) tctreeget(grok->captures_by_name,
+                                      (const char *)gct->name,
+                                      gct->name_len, &unused_size);
+  if (by_name_list == NULL) {
+    by_name_list = tclistnew();
+    tctreeput(grok->captures_by_name, gct->name, gct->name_len,
+              by_name_list, sizeof(TCLIST));
   }
-  return ret;
-}
+  tclistpush(by_name_list, gct, sizeof(grok_capture));
+  /* end captures_by_name */
 
-int _grok_capture_get_db(grok_t *grok, DB *db, DBT *key, grok_capture *gct) {
-  DBT value;
-  int ret;
-
-  memset(&value, 0, sizeof(DBT));
-
-  ret = db->get(db, NULL, key, &value, 0);
-  if (ret != 0) {
-    return ret;
+  /* captures_by_subname */
+  TCLIST *by_subname_list;
+  by_subname_list = (TCLIST *) tctreeget(grok->captures_by_subname,
+                                         (const char *)gct->subname,
+                                         gct->subname_len, &unused_size);
+  if (by_subname_list == NULL) {
+    by_subname_list = tclistnew();
+    tctreeput(grok->captures_by_subname, gct->subname, gct->subname_len,
+              by_subname_list, sizeof(TCLIST));
   }
-  _grok_capture_decode(gct, (char *)value.data, value.size);
-  return 0;
+  tclistpush(by_subname_list, gct, sizeof(grok_capture));
+  /* end captures_by_subname */
 }
 
-int grok_capture_get_by_id(grok_t *grok, int id, grok_capture *gct) {
-  DBT key;
-  int ret;
-  memset(&key, 0, sizeof(DBT));
-  key.data = &id;
-  key.size = sizeof(id);
-  ret = _grok_capture_get_db(grok, grok->captures_by_id, &key, gct);
-  return ret;
+const grok_capture *grok_capture_get_by_id(grok_t *grok, int id) {
+  int unused_size;
+  const grok_capture *gct;
+  gct = tctreeget(grok->captures_by_id, &id, sizeof(id), &unused_size);
+  return gct;
 }
 
-int grok_capture_get_by_name(grok_t *grok, const char *name,
-                              grok_capture *gct) {
-  DBT key;
-  int ret;
-  memset(&key, 0, sizeof(DBT));
-  key.data = (char *)name;
-  key.size = strlen(name);
-  ret = _grok_capture_get_db(grok, grok->captures_by_name, &key, gct);
-  return ret;
+const grok_capture *grok_capture_get_by_name(grok_t *grok, const char *name) {
+  int unused_size;
+  const grok_capture *gct;
+  const TCLIST *by_name_list;
+  by_name_list = tctreeget(grok->captures_by_name, name, strlen(name),
+                           &unused_size);
+
+  if (by_name_list == NULL)
+    return NULL;
+
+  /* return the first capture by this name in the list */
+  gct = tclistval(by_name_list, 0, &unused_size);
+  return gct;
 }
 
-int grok_capture_get_by_subname(grok_t *grok, const char *subname,
-                                grok_capture *gct) {
-  DBT key;
-  int ret;
-  memset(&key, 0, sizeof(DBT));
-  key.data = (char *)subname;
-  key.size = strlen(subname);
-  ret = _grok_capture_get_db(grok, grok->captures_by_subname, &key, gct);
-  return ret;
+const grok_capture *grok_capture_get_by_subname(grok_t *grok,
+                                                const char *subname) {
+  int unused_size;
+  const grok_capture *gct;
+  const TCLIST *by_subname_list;
+  by_subname_list = tctreeget(grok->captures_by_subname, subname,
+                              strlen(subname), &unused_size);
+
+  if (by_subname_list == NULL)
+    return NULL;
+
+  gct = tclistval(by_subname_list, 0, &unused_size);
+  return gct;
 }
 
-int grok_capture_get_by_capture_number(grok_t *grok, int capture_number,
-                                        grok_capture *gct) {
-  DBT key;
-  int ret;
-  memset(&key, 0, sizeof(DBT));
-  key.data = &capture_number;
-  key.size = sizeof(capture_number);
-  ret = _grok_capture_get_db(grok, grok->captures_by_capture_number,
-                             &key, gct);
-  return ret;
+const grok_capture *grok_capture_get_by_capture_number(grok_t *grok,
+                                                       int capture_number) {
+  int unused_size;
+  const grok_capture *gct;
+  gct = tctreeget(grok->captures_by_capture_number, &capture_number,
+                   sizeof(capture_number), &unused_size);
+  return gct;
 }
 
 int grok_capture_set_extra(grok_t *grok, grok_capture *gct, void *extra) {
@@ -112,12 +123,15 @@ int grok_capture_set_extra(grok_t *grok, grok_capture *gct, void *extra) {
 
   /* We could copy it this way, but if you compile with -fomit-frame-pointer,
    * this data is lost since extra is in the stack. Copy the pointer instead.
+   * TODO(sissel): See if we don't need this anymore since using tokyocabinet.
    */
   //gct->extra.extra_val = (char *)&extra;
 
   gct->extra.extra_len = sizeof(void *); /* allocate pointer size */
   gct->extra.extra_val = malloc(gct->extra.extra_len);
   memcpy(gct->extra.extra_val, &extra, gct->extra.extra_len);
+  //gct->extra.extra_len = extra;
+  //gct->extra.extra_val = extra;
   return 0;
 }
 
@@ -165,67 +179,6 @@ void _grok_capture_decode(grok_capture *gct, char *data, int size) {
   xdr_grok_capture(&xdr, gct);
 }
 
-int _db_captures_by_name_key(DB *secondary, const DBT *key,
-                                   const DBT *data, DBT *result) {
-  grok_capture gct;
-  int len;
-
-  grok_capture_init(NULL, &gct);
-  _grok_capture_decode(&gct, (char *)data->data, data->size);
-
-  if (gct.name == NULL)
-    return DB_DONOTINDEX;
-
-  len = strlen(gct.name);
-
-  result->data = malloc(len);
-  memcpy(result->data, gct.name, len);
-  result->size = len;
-
-  result->flags |= DB_DBT_APPMALLOC;
-
-  grok_capture_free(&gct);
-  return 0;
-}
-
-int _db_captures_by_capture_number(DB *secondary, const DBT *key,
-                                         const DBT *data, DBT *result) {
-  grok_capture gct;
-  grok_capture_init(NULL, &gct);
-  _grok_capture_decode(&gct, (char *)data->data, data->size);
-
-  if (gct.pcre_capture_number == CAPTURE_NUMBER_NOT_SET)
-    return DB_DONOTINDEX;
-
-  result->data = malloc(sizeof(int));
-  *((int *)result->data) = gct.pcre_capture_number;
-  result->size = sizeof(int);
-
-  result->flags |= DB_DBT_APPMALLOC;
-
-  grok_capture_free(&gct);
-  return 0;
-}
-
-int _db_captures_by_subname(DB *secondary, const DBT *key,
-                            const DBT *data, DBT *result) {
-  grok_capture gct;
-  grok_capture_init(NULL, &gct);
-  _grok_capture_decode(&gct, (char *)data->data, data->size);
-
-  if (gct.subname == NULL || *gct.subname == '\0')
-    return DB_DONOTINDEX;
-
-  result->size = strlen(gct.subname);
-  result->data = malloc(result->size);
-  memcpy(result->data, gct.subname, result->size);
-
-  result->flags |= DB_DBT_APPMALLOC;
-
-  grok_capture_free(&gct);
-  return 0;
-}
-
 #define _GCT_STRFREE(gct, member) \
   if (gct->member != NULL && gct->member != EMPTYSTR) { \
     free(gct->member); \
@@ -240,46 +193,23 @@ void grok_capture_free(grok_capture *gct) {
   _GCT_STRFREE(gct, extra.extra_val);
 }
 
-void *grok_capture_walk_init(grok_t *grok) {
-  DBC *cursor;
-  DB *db = grok->captures_by_id;
-  db->cursor(db, NULL, &cursor, 0);
-
-  DBT key; DBT value; int ret;
-  memset(&key, 0, sizeof(DBT));
-  memset(&value, 0, sizeof(DBT));
-  while ((ret = cursor->c_get(cursor, &key, &value, DB_NEXT)) == 0) {
-    grok_capture gct;
-    grok_capture_init(grok, &gct);
-    _grok_capture_decode(&gct, (char *)value.data, value.size);
-    grok_capture_free(&gct);
-  }
-
-  cursor->c_close(cursor);
-
-  grok->captures_by_name->cursor(grok->captures_by_name, NULL, &cursor, 0);
-  return cursor;
+/* this function will walk the captures_by_id table */
+void grok_capture_walk_init(grok_t *grok) {
+  tctreeiterinit(grok->captures_by_id);
 }
 
-int grok_capture_walk_next(grok_t *grok, void *handle, grok_capture *gct) {
-  DBT key;
-  DBT value;
+const grok_capture *grok_capture_walk_next(grok_t *grok) {
   int ret;
-  DBC *cursor = (DBC *)handle;
+  int unused_size;
+  int *id;
+  const grok_capture *gct;
 
-  memset(&key, 0, sizeof(DBT));
-  memset(&value, 0, sizeof(DBT));
-  //grok_log(grok, LOG_CAPTURE, "Fetching next from cursor");
-  ret = cursor->c_get(cursor, &key, &value, DB_NEXT);
-
-  if (ret != 0) {
-    //grok->captures_by_id->err(grok->captures_by_id, ret, "cursor get error");
-    return ret;
-  }
-  _grok_capture_decode(gct, (char *)value.data, value.size);
-  return 0;
+  id = (int *)tctreeiternext(grok->captures_by_id, &unused_size);
+  gct = (grok_capture *)tctreeget(grok->captures_by_id, id, sizeof(id),
+                                  &unused_size);
+  return gct;
 }
 
-int grok_capture_walk_end(grok_t *grok, void *handle) {
-  return ((DBC *)handle)->c_close((DBC *)handle);
+int grok_capture_walk_end(grok_t *grok) {
+  /* nothing, anymore */
 }

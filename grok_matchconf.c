@@ -7,6 +7,7 @@
 #include "grok_logging.h"
 #include "libc_helper.h"
 #include "filters.h"
+#include "stringhelper.h"
 
 char *grok_match_reaction_apply_filter(grok_match_t *gm,
                                        char **value, int *value_len,
@@ -190,7 +191,6 @@ char *grok_matchconfig_filter_reaction(const char *str, grok_match_t *gm) {
         case VALUE_JSON_SIMPLE:
         case VALUE_JSON_COMPLEX:
           {
-            void *handle;
             int value_offset = 0;
             int value_size = 0;
             char *pname;
@@ -248,8 +248,8 @@ char *grok_matchconfig_filter_reaction(const char *str, grok_match_t *gm) {
             /* For every named capture, put this in our result string:
              * "NAME": "%{NAME|jsonencode}"
              */
-            handle = grok_match_walk_init(gm);
-            while (grok_match_walk_next(gm, handle, &pname, &pname_len,
+            grok_match_walk_init(gm);
+            while (grok_match_walk_next(gm, &pname, &pname_len,
                                         &pdata, &pdata_len) == 0) {
               char *entry;
               int entry_len;
@@ -277,9 +277,8 @@ char *grok_matchconfig_filter_reaction(const char *str, grok_match_t *gm) {
                              value_offset, value_offset, entry, entry_len);
               value_offset += entry_len;
               free(entry);
-              free(pname); /* alloc'd by grok_match_walk_next */
             }
-            grok_match_walk_end(gm, handle);
+            grok_match_walk_end(gm);
 
             /* Insert the { at the beginning */
             /* And Replace trailing ", " with " }" */

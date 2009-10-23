@@ -2,7 +2,7 @@ PACKAGE=grok
 PREFIX=/usr/local
 
 CFLAGS+=-pipe -fPIC
-#CFLAGS+=-pg -g
+CFLAGS+=-pg -g
 CFLAGS+=-O2
 #CFLAGS+=-O3
 LDFLAGS+=-lpcre -levent -rdynamic -ltokyocabinet
@@ -15,22 +15,13 @@ LDFLAGS+=-L/usr/local/lib
 # Uncomment to totally disable logging features
 #CFLAGS+=-DNOLOGGING
 
+# For linux, we need libdl for dlopen()
+LDFLAGS+=-ldl
+
 EXTRA_CFLAGS?=
 EXTRA_LDFLAGS?=
 CFLAGS+=$(EXTRA_CFLAGS)
 LDFLAGS+=$(EXTRA_LDFLAGS)
-
-# For Linux
-DBLIB=db
-DBINC=/usr/include
-LDFLAGS+=-ldl
-
-# For FreeBSD
-#DBLIB=db-4.5
-#DBINC=/usr/local/include/db45
-
-CFLAGS+=-I$(DBINC)
-LDFLAGS+=-l$(DBLIB)
 
 ### End of user-servicable configuration
 
