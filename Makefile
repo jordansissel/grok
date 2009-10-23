@@ -2,7 +2,7 @@ PACKAGE=grok
 PREFIX=/usr/local
 
 CFLAGS+=-pipe -fPIC
-CFLAGS+=-O2
+CFLAGS+=-O3
 #CFLAGS+=-pg -g
 LDFLAGS+=-lpcre -levent -rdynamic -ltokyocabinet
 
