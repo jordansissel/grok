@@ -1,8 +1,15 @@
+20091023
+  - Fix libgrok accidentally sharing it's parser/lexer functions. Turns out,
+    libgrok doesn't actually need to parse the grok.conf, so we don't build
+    against it anymore for the library.
+
 20091022:
   - Convert to using tokyocabinet instead of berkeley db.
-    * Berkeley DB isn't easy to target across platforms (4.x versions vary wildly in bugs)
+    * Berkeley DB isn't easy to target across platforms (4.x versions vary
+      wildly in bugs)
     * tokyo cabinet should be faster
-    * tokyo cabinet is less code to write, and slightly more readable in the author's opinion.
+    * tokyo cabinet is less code to write, and slightly more readable in the
+      author's opinion.  
     * we don't have to serialize with xdr anymore
   
 20091019:

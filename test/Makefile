@@ -3,7 +3,7 @@ include ../Makefile
 # Search these paths for dependency targets
 VPATH=..:.
 
-LDFLAGS+=-lcunit
+LDFLAGS+=-lcunit -levent
 CFLAGS+=-I. -I.. -g $(EXTRA_CFLAGS)
 CLEANOBJ=*.o *.gentest.c *_xdr.[hco]
 CLEANBIN=*.test
