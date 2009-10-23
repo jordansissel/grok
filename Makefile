@@ -4,7 +4,7 @@ PREFIX=/usr/local
 CFLAGS+=-pipe -fPIC
 CFLAGS+=-O3
 #CFLAGS+=-pg -g
-LDFLAGS+=-lpcre -levent -rdynamic -ltokyocabinet
+LDFLAGS+=-lpcre -rdynamic -ltokyocabinet
 
 # Sane includes
 CFLAGS+=-I/usr/local/include
@@ -71,8 +71,8 @@ grok: LDFLAGS+=-levent
 grok: $(GROKOBJ) conf.tab.o conf.yy.o main.o grok_config.o
 	gcc $(LDFLAGS) -g $^ -o $@
 
-libgrok.so: LDFLAGS+=-levent
-libgrok.so: $(GROKOBJ) conf.tab.o conf.yy.o main.o grok_config.o
+libgrok.so: 
+libgrok.so: $(GROKOBJ) 
 	gcc $(LDFLAGS) -fPIC -shared -g $^ -o $@
 
 # File dependencies
