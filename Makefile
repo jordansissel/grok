@@ -114,7 +114,7 @@ grok_capture_xdr.h: grok_capture.x
 	rpcgen -h $< -o $@
 
 %.c: %.gperf
-	if $(GPERF) --version | egrep -v '3\.[0-9]+\.[0-9]+' ; then \
+	if $(GPERF) --version | head -1 | egrep -v '3\.[0-9]+\.[0-9]+' ; then \
 		echo "We require gperf version >= 3.0.3" ; \
 		exit 1; \
 	fi
