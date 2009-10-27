@@ -53,7 +53,7 @@ void grok_capture_add(grok_t *grok, const grok_capture *gct) {
   if (by_name_list == NULL) {
     by_name_list = tclistnew();
   }
-  /* delete a capture with the same capture id */
+  /* delete a capture with the same capture id  so we can replace it*/
   listsize = tclistnum(by_name_list);
   for (i = 0; i < listsize; i++) {
     grok_capture *list_gct;
@@ -76,6 +76,7 @@ void grok_capture_add(grok_t *grok, const grok_capture *gct) {
   if (by_subname_list == NULL) {
     by_subname_list = tclistnew();
   }
+  /* delete a capture with the same capture id so we can replace it*/
   listsize = tclistnum(by_subname_list);
   for (i = 0; i < listsize; i++) {
     grok_capture *list_gct;
