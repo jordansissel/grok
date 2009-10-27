@@ -5,7 +5,7 @@ VPATH=..:.
 
 LDFLAGS+=-lcunit -levent
 CFLAGS+=-I. -I.. -g $(EXTRA_CFLAGS)
-CLEANOBJ=*.o *.gentest.c *_xdr.[hco]
+CLEANOBJ=*.o *.gentest.c *_xdr.[hco] _*.c
 CLEANBIN=*.test
 
 TESTS=$(wildcard *.test.c)

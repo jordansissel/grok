@@ -1,12 +1,15 @@
 Dependencies:
   The following are the dependency versions known to work:
 
-    Build dependencies:
+    Developer dependencies:
       bison        >= 2.3
-      flex         >= 2.5.35
+      gnu flex     >= 2.5.35
+    * gnu flex and bison are only needed for developers, as the main source
+      code comes with bison/flex code generation already run)
+
+    Build dependencies:
       gperf        >= 3.0
       GNU make     >= 3.81
-
     Run dependencies:
       libevent      >= 1.3 (older versions may work)
       libpcre       >= 7.6
