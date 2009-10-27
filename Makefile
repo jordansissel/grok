@@ -1,10 +1,26 @@
 PACKAGE=grok
 PREFIX=/usr/local
+CFLAGS+=-O2
 
+PLATFORM=$(shell (uname -o || uname -s) 2> /dev/null)
+
+# On FreeBSD, you may want to set GPERF=/usr/local/bin/gperf since
+# the base system gperf is too old.
+ifeq ($(PLATFORM), FreeBSD)
+GPERF?=/usr/local/bin/gperf
+else
+GPERF?=/usr/bin/gperf
+endif
+
+# For linux, we need libdl for dlopen()
+# On FreeBSD, comment this line out.
+ifeq ($(PLATFORM), GNU/Linux)
+LDFLAGS+=-ldl
+endif
+
+# You probably don't need to make changes below
 CFLAGS+=-pipe -fPIC
-CFLAGS+=-O3
-#CFLAGS+=-pg -g
-LDFLAGS+=-lpcre -rdynamic -ltokyocabinet
+LDFLAGS+=-lpcre -levent -rdynamic -ltokyocabinet
 
 # Sane includes
 CFLAGS+=-I/usr/local/include
@@ -12,9 +28,6 @@ LDFLAGS+=-L/usr/local/lib
 
 # Uncomment to totally disable logging features
 #CFLAGS+=-DNOLOGGING
-
-# For linux, we need libdl for dlopen()
-LDFLAGS+=-ldl
 
 EXTRA_CFLAGS?=
 EXTRA_LDFLAGS?=
@@ -48,7 +61,15 @@ test-package:
 	echo "Running tests..." && make -C /tmp/$${PKGVER}/test test
 
 .PHONY: clean 
-clean: cleanobj cleanbin cleangen
+clean: cleanobj cleanbin 
+
+# reallyclean also purges generated files
+# we don't clean generated files in 'clean' target
+# because some systems don't have the tools to regenerate
+# the data, such as FreeBSD which has the wrong flavor
+# of flex (not gnu flex)
+.PHONY: reallyclean
+reallyclean: clean cleangen
 
 .PHONY: cleanobj
 cleanobj:
@@ -93,7 +114,11 @@ grok_capture_xdr.h: grok_capture.x
 	rpcgen -h $< -o $@
 
 %.c: %.gperf
-	gperf $< > $@
+	if $(GPERF) --version | egrep -v '3\.[0-9]+\.[0-9]+' ; then \
+		echo "We require gperf version >= 3.0.3" ; \
+		exit 1; \
+	fi
+	$(GPERF) $< > $@
 
 conf.tab.c conf.tab.h: conf.y
 	bison -d $<

@@ -7,6 +7,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <db.h>
+#include <string.h>
 
 typedef struct grok grok_t;
 
