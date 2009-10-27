@@ -41,6 +41,14 @@ void test_grok_capture_get_by_name(void) {
   CU_ASSERT(src.id == dst->id);
   CU_ASSERT(src.pcre_capture_number == dst->pcre_capture_number);
   CU_ASSERT(!strcmp(src.name, dst->name));
+
+  src.pcre_capture_number = 30;
+  grok_capture_add(&grok, &src);
+  dst = grok_capture_get_by_name(&grok, src.name);
+  CU_ASSERT(dst != NULL);
+  CU_ASSERT(src.id == dst->id);
+  CU_ASSERT(src.pcre_capture_number == dst->pcre_capture_number);
+  CU_ASSERT(!strcmp(src.name, dst->name));
   CLEANUP;
 } 
 
