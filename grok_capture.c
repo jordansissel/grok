@@ -41,6 +41,8 @@ void grok_capture_add(grok_t *grok, const grok_capture *gct) {
   tctreeput(grok->captures_by_capture_number, &(gct->pcre_capture_number), 
             sizeof(gct->pcre_capture_number), gct, sizeof(grok_capture));
 
+
+  int i, listsize, position;
   /* TCTREE doesn't permit dups, so let's make the structure a tree of arrays,
    * keyed on a string. */
   /* captures_by_name */
@@ -50,6 +52,16 @@ void grok_capture_add(grok_t *grok, const grok_capture *gct) {
                                       gct->name_len, &unused_size);
   if (by_name_list == NULL) {
     by_name_list = tclistnew();
+  }
+  /* delete a capture with the same capture id */
+  listsize = tclistnum(by_name_list);
+  for (i = 0; i < listsize; i++) {
+    grok_capture *list_gct;
+    list_gct = tclistval(by_name_list, i, &unused_size);
+    if (list_gct->id == gct->id) {
+      tclistremove(by_name_list, i, &unused_size);
+      break;
+    }
   }
   tclistpush(by_name_list, gct, sizeof(grok_capture));
   tctreeput(grok->captures_by_name, gct->name, gct->name_len,
@@ -63,6 +75,15 @@ void grok_capture_add(grok_t *grok, const grok_capture *gct) {
                                          gct->subname_len, &unused_size);
   if (by_subname_list == NULL) {
     by_subname_list = tclistnew();
+  }
+  listsize = tclistnum(by_subname_list);
+  for (i = 0; i < listsize; i++) {
+    grok_capture *list_gct;
+    list_gct = tclistval(by_subname_list, i, &unused_size);
+    if (list_gct->id == gct->id) {
+      tclistremove(by_subname_list, i, &unused_size);
+      break;
+    }
   }
   tclistpush(by_subname_list, gct, sizeof(grok_capture));
   tctreeput(grok->captures_by_subname, gct->subname, gct->subname_len,

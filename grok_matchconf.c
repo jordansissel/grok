@@ -14,7 +14,7 @@ char *grok_match_reaction_apply_filter(grok_match_t *gm,
                                        const char *filter, int filter_len);
 
 static int mcgrok_init = 0;
-static grok_t matchconfig_grok;
+static grok_t global_matchconfig_grok;
 
 void grok_matchconfig_init(grok_program_t *gprog, grok_matchconf_t *gmc) {
   grok_init(&gmc->grok);
@@ -23,19 +23,22 @@ void grok_matchconfig_init(grok_program_t *gprog, grok_matchconf_t *gmc) {
   gmc->shellinput = NULL;
 
   if (mcgrok_init == 0) {
-    grok_init(&matchconfig_grok);
-    grok_patterns_import_from_string(&matchconfig_grok, 
+    grok_init(&global_matchconfig_grok);
+    global_matchconfig_grok.logmask = gprog->logmask;
+    global_matchconfig_grok.logdepth = gprog->logdepth;
+    grok_patterns_import_from_string(&global_matchconfig_grok, 
                                      "PATTERN \\%\\{%{NAME}(?:%{FILTER})?}");
-    grok_patterns_import_from_string(&matchconfig_grok, "NAME @?\\w+(?::\\w+)?(?:|\\w+)*");
-    grok_patterns_import_from_string(&matchconfig_grok, "FILTER (?:\\|\\w+)+");
-    grok_compile(&matchconfig_grok, "%{PATTERN}");
+    grok_patterns_import_from_string(&global_matchconfig_grok,
+                                     "NAME @?\\w+(?::\\w+)?(?:|\\w+)*");
+    grok_patterns_import_from_string(&global_matchconfig_grok, "FILTER (?:\\|\\w+)+");
+    grok_compile(&global_matchconfig_grok, "%{PATTERN}");
     mcgrok_init = 1;
   }
 }
 
 void grok_matchconfig_global_cleanup(void) {
   if (mcgrok_init) {
-    grok_free(&matchconfig_grok);
+    grok_free(&global_matchconfig_grok);
   }
 }
 
@@ -137,9 +140,9 @@ char *grok_matchconfig_filter_reaction(const char *str, grok_match_t *gm) {
 
   grok_log(gm->grok, LOG_REACTION,
            "Checking '%.*s'", len - offset, output + offset);
-  matchconfig_grok.logmask = gm->grok->logmask;
-  matchconfig_grok.logdepth  = gm->grok->logdepth + 1;
-  while (grok_execn(&matchconfig_grok, output + offset,
+  global_matchconfig_grok.logmask = gm->grok->logmask;
+  global_matchconfig_grok.logdepth  = gm->grok->logdepth + 1;
+  while (grok_execn(&global_matchconfig_grok, output + offset,
                     len - offset, &tmp_gm) == GROK_OK) {
     grok_log(gm->grok, LOG_REACTION, "Checking '%.*s'",
              len - offset, output + offset);

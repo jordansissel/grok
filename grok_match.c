@@ -28,8 +28,8 @@ int grok_match_get_named_substring(const grok_match_t *gm, const char *name,
 
   start = (gm->grok->pcre_capture_vector[gct->pcre_capture_number * 2]);
   end = (gm->grok->pcre_capture_vector[gct->pcre_capture_number * 2 + 1]);
-  grok_log(gm->grok, LOG_MATCH, "Capture '%s' is %d -> %d of string '%s'",
-           name, start, end, gm->subject);
+  grok_log(gm->grok, LOG_MATCH, "Capture '%s' == '%.*s' is %d -> %d of string '%s'",
+           name, end - start, gm->subject + start, start, end, gm->subject);
   *substr = gm->subject + start;
   *len = (end - start);
 
