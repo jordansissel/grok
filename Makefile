@@ -58,7 +58,7 @@ build-package:
 test-package:
 	PKGVER=$(PACKAGE)-`date "+%Y%m%d"`; \
 	tar -C /tmp -xf $${PKGVER}.tar.gz; \
-	echo "Running tests..." && make -C /tmp/$${PKGVER}/test test
+	echo "Running tests..." && $(MAKE) -C /tmp/$${PKGVER}/test test
 
 .PHONY: clean 
 clean: cleanobj cleanbin 
@@ -85,7 +85,7 @@ cleangen:
 
 .PHONY: test
 test:
-	make -C test test
+	$(MAKE) -C test test
 
 # Binary creation
 grok: LDFLAGS+=-levent
