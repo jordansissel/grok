@@ -50,10 +50,13 @@ GROKPROGOBJ=grok_input.o grok_program.o grok_matchconf.o $(GROKOBJ)
 .PHONY: all
 all: grok libgrok.so
 
-.PHONY: package build-package test-package
-package: build-package test-package
+.PHONY: package build-package test-package update-version
+package: build-package test-package 
 
-build-package:
+update-version:
+	sed -i -e "s/^Version: .*/Version: $$(date "+%Y%m%d")/" grok.spec
+
+build-package: update-version
 	PACKAGE=$(PACKAGE) sh package.sh
 
 test-package:
@@ -98,12 +101,32 @@ libgrok.so: $(GROKOBJ)
 	gcc $(LDFLAGS) -fPIC -shared -g $^ -o $@
 
 # File dependencies
-grok.h: grok_capture.h
-grok_match.h: grok_capture.h
+# generated with: 
+# for i in *.c; do grep '#include "' $i | fex '"2' | xargs | sed -e "s/^/$i: /"; done    
+grok.c: grok.h
+grok_capture.c: grok.h grok_capture.h grok_capture_xdr.h
+grok_capture_xdr.c: grok_capture.h
+grok_config.c: grok_input.h grok_config.h grok_matchconf.h grok_logging.h
+grok_input.c: grok.h grok_program.h grok_input.h grok_matchconf.h grok_logging.h libc_helper.h
+grok_logging.c: grok.h
+grok_match.c: grok.h
+grok_matchconf.c: grok.h grok_matchconf.h grok_matchconf_macro.h grok_logging.h libc_helper.h filters.h stringhelper.h
+grok_pattern.c: grok.h grok_pattern.h
+grok_program.c: grok.h grok_program.h grok_input.h grok_matchconf.h
+grokre.c: grok.h predicates.h stringhelper.h
+libc_helper.c: libc_helper.h
+main.c: grok.h grok_program.h grok_config.h conf.tab.h
+predicates.c: grok_logging.h predicates.h
+stringhelper.c: stringhelper.h
+filters.h: grok.h
+grok.h: grok_logging.h grok_pattern.h grok_capture.h grok_match.h grokre.h
 grok_capture.h: grok_capture_xdr.h
-main.c: grok_capture.h
-grok_input.c: grok_capture.h libc_helper.h
-grok.c: grok.h grok_capture.h
+grok_config.h: grok_program.h
+grok_input.h: grok_program.h
+grok_match.h: grok_capture_xdr.h
+grok_matchconf.h: grok.h grok_input.h grok_program.h
+predicates.h: grok.h
+
 
 # Output generation
 grok_capture_xdr.o: grok_capture_xdr.c grok_capture_xdr.h
