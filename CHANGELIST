@@ -1,3 +1,15 @@
+20091030
+  - Add grok rpm spec.
+  - Updated Makefile to work on Linux and FreeBSD without modification.
+  - Fixed bug introduced in 20091022 where capture_by_(name,subname) didn't
+    work properly.
+  - Add default values for match {} grok.conf blocks:
+    shell: stdout
+    reaction: "%{@LINE}"
+  - Have grok exit nonzero if there were no reactions executed, akin to grep(1)
+    not matching anything. 'reactions' are important here; matches with no
+    reaction will not count as a reaction.
+
 20091023
   - Fix libgrok accidentally sharing it's parser/lexer functions. Turns out,
     libgrok doesn't actually need to parse the grok.conf, so we don't build
