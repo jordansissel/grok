@@ -32,6 +32,7 @@ struct grok_program {
   int logdepth;
 
   grok_collection_t *gcol; /* if we are using this program in a collection */
+  int reactions;
 };
 
 struct grok_collection {
@@ -44,6 +45,7 @@ struct grok_collection {
 
   int logmask;
   int logdepth;
+  int exit_code;
 };
 
 

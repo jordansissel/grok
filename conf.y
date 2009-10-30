@@ -45,7 +45,7 @@ void yyerror (YYLTYPE *loc, struct config *conf, char const *s) {
 %token MATCH_BREAK_IF_MATCH "break-if-match"
 
 %token SHELL_STDOUT "stdout"
-%token SHELL_NONE "none"
+%token LITERAL_NONE "none"
 
 %token '{' '}' ';' ':' '\n'
 
@@ -130,6 +130,7 @@ match_block: match_block match_block_statement
 match_block_statement: /* empty */
            | "pattern" ':' QUOTEDSTRING { grok_compile(&CURMATCH.grok, $3); }
            | "reaction" ':' QUOTEDSTRING { CURMATCH.reaction = $3; }
+           | "reaction" ':' "none" { CURMATCH.no_reaction = 1; }
            | "shell" ':' QUOTEDSTRING { CURMATCH.shell = $3; }
            | "shell" ':' "none" { CURMATCH.shell = "none"; }
            | "shell" ':' "stdout" { CURMATCH.shell = "stdout"; }

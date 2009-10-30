@@ -16,6 +16,7 @@ void conf_init(struct config *conf) {
 }
 
 void conf_new_program(struct config *conf) {
+  /* TODO(sissel): put most of this into grok_program_init, or something */
   conf->nprograms++;
   if (conf->nprograms == conf->program_size) {
     conf->program_size *= 2;
@@ -35,6 +36,8 @@ void conf_new_program(struct config *conf) {
   CURPROGRAM.npatternfiles = 0;
   CURPROGRAM.patternfile_size = 10;
   CURPROGRAM.patternfiles = calloc(CURPROGRAM.patternfile_size, sizeof(char *));
+
+  CURPROGRAM.reactions = 0;
 
   //CURPROGRAM.logmask = ~0;
 

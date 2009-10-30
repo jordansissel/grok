@@ -1,6 +1,7 @@
 PACKAGE=grok
 PREFIX=/usr/local
 CFLAGS+=-O2
+#CFLAGS+=-g
 
 PLATFORM=$(shell (uname -o || uname -s) 2> /dev/null)
 

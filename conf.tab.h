@@ -59,7 +59,7 @@
      MATCH_FLUSH = 275,
      MATCH_BREAK_IF_MATCH = 276,
      SHELL_STDOUT = 277,
-     SHELL_NONE = 278
+     LITERAL_NONE = 278
    };
 #endif
 /* Tokens.  */
@@ -83,7 +83,7 @@
 #define MATCH_FLUSH 275
 #define MATCH_BREAK_IF_MATCH 276
 #define SHELL_STDOUT 277
-#define SHELL_NONE 278
+#define LITERAL_NONE 278
 
 
 

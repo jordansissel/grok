@@ -25,5 +25,5 @@ int main() {
   }
   grok_collection_loop(gcol);
 
-  return 0;
+  return gcol->exit_code;
 }

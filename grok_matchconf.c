@@ -21,6 +21,7 @@ void grok_matchconfig_init(grok_program_t *gprog, grok_matchconf_t *gmc) {
   gmc->shell = NULL;
   gmc->reaction = NULL;
   gmc->shellinput = NULL;
+  gmc->matches = 0;
 
   if (mcgrok_init == 0) {
     grok_init(&global_matchconfig_grok);
@@ -75,6 +76,9 @@ void grok_matchconfig_exec(grok_program_t *gprog, grok_input_t *ginput,
     ret = grok_exec(grok, text, &gm);
     if (ret == GROK_OK) {
       grok_matchconfig_react(gprog, ginput, gmc, &gm);
+      if (!gmc->no_reaction) {
+        gprog->reactions += 1;
+      }
 
       if (gmc->break_if_match) {
         break;
@@ -87,6 +91,12 @@ void grok_matchconfig_react(grok_program_t *gprog, grok_input_t *ginput,
                             grok_matchconf_t *gmc, grok_match_t *gm) {
   char *reaction;
   ginput->instance_match_count++;
+
+  if (gmc->no_reaction) {
+    grok_log(gprog, LOG_REACTION, "Reaction set to none, skipping reaction.");
+    return;
+  }
+
   reaction = grok_matchconfig_filter_reaction(gmc->reaction, gm);
   if (reaction == NULL) {
     reaction = gmc->reaction;
@@ -96,10 +106,10 @@ void grok_matchconfig_react(grok_program_t *gprog, grok_input_t *ginput,
     grok_matchconfig_start_shell(gprog, gmc);
   }
 
-  grok_log(gprog, LOG_PROGRAM, "Sending '%s' to subshell", reaction);
+  grok_log(gprog, LOG_REACTION, "Sending '%s' to subshell", reaction);
   fprintf(gmc->shellinput, "%s\n", reaction);
   if (gmc->flush) {
-    grok_log(gprog, LOG_PROGRAM, "flush enabled, calling fflush");
+    grok_log(gprog, LOG_REACTION, "flush enabled, calling fflush");
     fflush(gmc->shellinput);
   }
 

@@ -38,7 +38,7 @@ flush { return MATCH_FLUSH; }
 break-if-match { return MATCH_BREAK_IF_MATCH; }
 
 debug { return CONF_DEBUG; }
-none { return SHELL_NONE; }
+none { return LITERAL_NONE; }
 stdout { return SHELL_STDOUT; }
 
 {true} { yylval->num = 1; return INTEGER; }

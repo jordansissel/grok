@@ -23,6 +23,7 @@ grok_collection_t *grok_collection_init() {
   gcol->program_size = 10;
   gcol->programs = calloc(gcol->program_size, sizeof(grok_program_t));
   gcol->ebase = event_init();
+  gcol->exit_code = 0;
 
   gcol->ev_sigchld = malloc(sizeof(struct event));
   signal_set(gcol->ev_sigchld, SIGCHLD, _collection_sigchld, gcol);
@@ -34,8 +35,10 @@ grok_collection_t *grok_collection_init() {
 void grok_collection_check_end_state(grok_collection_t *gcol) {
   int still_alive = 0;
   int p, i, m;
+  int reaction_count = 0;
   for (p = 0; p < gcol->nprograms; p++) {
     grok_program_t *gprog = gcol->programs[p];
+    reaction_count += gprog->reactions;
     for (i = 0; i < gprog->ninputs; i++) {
       grok_input_t *ginput = &gprog->inputs[i];
       still_alive += (ginput->done == 0);
@@ -54,6 +57,9 @@ void grok_collection_check_end_state(grok_collection_t *gcol) {
     /* Cleanup */
     grok_matchconfig_global_cleanup();
     event_base_loopexit(gcol->ebase, &nodelay);
+    if (reaction_count == 0) {
+      gcol->exit_code = 1;
+    }
   }
 }
 

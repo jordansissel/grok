@@ -964,7 +964,7 @@ YY_RULE_SETUP
 case 18:
 YY_RULE_SETUP
 #line 41 "conf.lex"
-{ return SHELL_NONE; }
+{ return LITERAL_NONE; }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
