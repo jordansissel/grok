@@ -1,4 +1,5 @@
 20091030
+  - Make 'grok' main take a config for an argument.
   - Add grok rpm spec.
   - Updated Makefile to work on Linux and FreeBSD without modification.
   - Fixed bug introduced in 20091022 where capture_by_(name,subname) didn't

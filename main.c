@@ -6,12 +6,17 @@
 
 extern FILE *yyin; /* from conf.lex (flex provides this) */
 
-int main() {
+int main(int argc, char **argv) {
   struct config c;
   grok_collection_t *gcol;
   int i;
 
-  yyin = fopen("grok.conf", "r");
+  if (argc != 2) {
+    fprintf(stderr, "Usage: %s <config file>\n", argv[0]);
+    exit(1);
+  }
+
+  yyin = fopen(argv[1], "r");
   conf_init(&c);
   i = yyparse(&c);
   if (i != 0) {
