@@ -93,4 +93,8 @@ void conf_new_matchconf(struct config *conf) {
     grok_patterns_import_from_file(&CURMATCH.grok, CURPROGRAM.patternfiles[i]);
   }
   SETLOG(CURPROGRAM, CURMATCH.grok);
+
+  /* Set sane defaults. */
+  CURMATCH.reaction = "%{@LINE}";
+  CURMATCH.shell = "stdout";
 }
