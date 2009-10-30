@@ -10,8 +10,9 @@ Source0: http://semicomplete.googlecode.com/files/%{name}-%{version}.tar.gz
 URL: http://www.semicomplete.com/projects/grok/
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 Requires: libevent
+Requires: pcre >= 7.6
 Requires: tokyocabinet >= 1.4.9
-BuildRequires: ruby-devel libevent-devel gperf tokyocabinet-devel
+BuildRequires: ruby-devel libevent-devel gperf tokyocabinet-devel pcre-devel
 
 %description
 A powerful pattern matching system for parsing and processing text data such
