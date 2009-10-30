@@ -57,7 +57,9 @@
      MATCH_REACTION = 273,
      MATCH_SHELL = 274,
      MATCH_FLUSH = 275,
-     MATCH_BREAK_IF_MATCH = 276
+     MATCH_BREAK_IF_MATCH = 276,
+     SHELL_STDOUT = 277,
+     SHELL_NONE = 278
    };
 #endif
 /* Tokens.  */
@@ -80,6 +82,8 @@
 #define MATCH_SHELL 274
 #define MATCH_FLUSH 275
 #define MATCH_BREAK_IF_MATCH 276
+#define SHELL_STDOUT 277
+#define SHELL_NONE 278
 
 
 
@@ -92,7 +96,7 @@ typedef union YYSTYPE
   int num;
 }
 /* Line 1489 of yacc.c.  */
-#line 96 "conf.tab.h"
+#line 100 "conf.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
