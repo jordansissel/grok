@@ -44,6 +44,9 @@ void yyerror (YYLTYPE *loc, struct config *conf, char const *s) {
 %token MATCH_FLUSH "flush"
 %token MATCH_BREAK_IF_MATCH "break-if-match"
 
+%token SHELL_STDOUT "stdout"
+%token SHELL_NONE "none"
+
 %token '{' '}' ';' ':' '\n'
 
 %pure-parser
@@ -103,7 +106,6 @@ program_nomatch: "no-match" '{'
 
 file_block: file_block file_block_statement
           | file_block_statement
-
 file_block_statement: /*empty*/
           | "follow" ':' INTEGER { CURINPUT.source.file.follow = $3; }
           | "debug" ':' INTEGER { CURINPUT.logmask = DEBUGMASK($3); }
@@ -129,6 +131,8 @@ match_block_statement: /* empty */
            | "pattern" ':' QUOTEDSTRING { grok_compile(&CURMATCH.grok, $3); }
            | "reaction" ':' QUOTEDSTRING { CURMATCH.reaction = $3; }
            | "shell" ':' QUOTEDSTRING { CURMATCH.shell = $3; }
+           | "shell" ':' "none" { CURMATCH.shell = "none"; }
+           | "shell" ':' "stdout" { CURMATCH.shell = "stdout"; }
            | "flush" ':' INTEGER { CURMATCH.flush = $3; }
            | "break-if-match" ':' INTEGER { CURMATCH.break_if_match = $3; }
            | "debug" ':' INTEGER { CURMATCH.grok.logmask = DEBUGMASK($3); }

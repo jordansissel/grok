@@ -374,6 +374,11 @@ void grok_matchconfig_start_shell(grok_program_t *gprog,
              "output to stdout instead of a process.");
     gmc->shellinput = stdout;
     return;
+  } else if (!strcmp(gmc->shell, "none")) {
+    grok_log(gprog, LOG_PROGRAM,
+             "matchconfig subshell set to 'ignore', not starting a shell...");
+    gmc->shellinput = fopen("/dev/null", "w");
+    return;
   } 
   safe_pipe(pipefd);
   grok_log(gprog, LOG_PROGRAM, "Starting matchconfig subshell: %s",
