@@ -132,7 +132,6 @@ match_block_statement: /* empty */
            | "reaction" ':' QUOTEDSTRING { CURMATCH.reaction = $3; }
            | "reaction" ':' "none" { CURMATCH.no_reaction = 1; }
            | "shell" ':' QUOTEDSTRING { CURMATCH.shell = $3; }
-           | "shell" ':' "none" { CURMATCH.shell = "none"; }
            | "shell" ':' "stdout" { CURMATCH.shell = "stdout"; }
            | "flush" ':' INTEGER { CURMATCH.flush = $3; }
            | "break-if-match" ':' INTEGER { CURMATCH.break_if_match = $3; }
