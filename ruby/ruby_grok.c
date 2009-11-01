@@ -68,7 +68,7 @@ VALUE rGrok_match(VALUE self, VALUE input) {
       break;
     default:
       rb_raise(rb_eArgError, "Error from grok_execn: %d", ret);
-      rgm = Qnil;
+      rgm = Qfalse;
   }
 
   return rgm;
