@@ -9,6 +9,9 @@ static ID id_atstart;
 static ID id_atcaptures;
 static ID id_atsubject;
 
+static ID id_length;
+static ID id_has_key_p;
+
 static void rGrokMatch_free(void *p);
 
 VALUE rGrokMatch_new(VALUE klass) {
@@ -48,11 +51,9 @@ VALUE rGrokMatch_each_capture(VALUE self) {
   int namelen, datalen;
   grok_match_t *gm;
   VALUE captures;
-  ID pred_include;
 
   Data_Get_Struct(self, grok_match_t, gm);
   captures = rb_iv_get(self, "@captures");
-  pred_include = rb_intern("include?");
   grok_match_walk_init(gm);
   while (grok_match_walk_next(gm, &name, &namelen, &data, &datalen) == 0) {
     VALUE key, value;
@@ -74,11 +75,12 @@ VALUE rGrokMatch_each_capture(VALUE self) {
 
     koff++;
 
-    key = rb_str_new(name + koff, namelen - koff);
+    key = rb_tainted_str_new(name + koff, namelen - koff);
+#else
+    key = rb_tainted_str_new(name, namelen);
 #endif
 
-    key = rb_str_new(name, namelen);
-    value = rb_str_new(data, datalen);
+    value = rb_tainted_str_new(data, datalen);
 
     // Yield [key, value]
     rb_yield(rb_ary_new3(2, key, value));
@@ -90,26 +92,24 @@ VALUE rGrokMatch_each_capture(VALUE self) {
 }
 
 VALUE rGrokMatch_captures(VALUE self) {
-  VALUE captures = rb_iv_get(self, "@captures");
-  VALUE len;
-  VALUE id_length;
-
-  id_length = rb_intern("length");
-  len = rb_funcall(captures, id_length, 0);
-  if (FIX2INT(len) > 0) {
-    /* Already have computed the captures hash, just return it */
-    return captures;
-  }
-
-  /* haven't generated captures hash yet, do it now. */
   char *name;
   const char *data;
   int namelen, datalen;
   grok_match_t *gm;
-  ID pred_include;
+  VALUE captures;
 
   Data_Get_Struct(self, grok_match_t, gm);
-  pred_include = rb_intern("include?");
+  captures = rb_iv_get(self, "@captures");
+
+  if (captures == Qnil) {
+    captures = rb_hash_new();
+  }
+
+  if (FIX2INT(rb_funcall(captures, id_length, 0)) > 0) {
+  //if (FIX2NUM(rb_hash_size(captures)) > 0) {
+    return captures;
+  }
+
   grok_match_walk_init(gm);
   while (grok_match_walk_next(gm, &name, &namelen, &data, &datalen) == 0) {
     VALUE key, value;
@@ -131,19 +131,20 @@ VALUE rGrokMatch_captures(VALUE self) {
 
     koff++;
 
-    key = rb_str_new(name + koff, namelen - koff);
+    key = rb_tainted_str_new(name + koff, namelen - koff);
+#else
+    key = rb_tainted_str_new(name, namelen);
 #endif
+    value = rb_tainted_str_new(data, datalen);
 
-    key = rb_str_new(name, namelen);
-    value = rb_str_new(data, datalen);
-
-    VALUE caparray = rb_hash_aref(captures, key);
-    if (caparray == Qnil) {
-      caparray = rb_ary_new();
-      rb_hash_aset(captures, key, caparray);
+    VALUE array;
+    //if (rb_hash_has_key(captures, key) == Qfalse) {
+    if (rb_funcall(captures, id_has_key_p, 1, key) == Qfalse) {
+      array = rb_hash_aset(captures, key, rb_ary_new());
+    } else {
+      array = rb_hash_aref(captures, key);
     }
-
-    rb_ary_push(caparray, value);
+    rb_ary_push(array, value);
   }
 
   grok_match_walk_end(gm);
@@ -170,7 +171,7 @@ VALUE rGrokMatch_end(VALUE self) {
 VALUE rGrokMatch_subject(VALUE self) {
   grok_match_t *gm;
   Data_Get_Struct(self, grok_match_t, gm);
-  return rb_str_new2(gm->subject);
+  return rb_tainted_str_new2(gm->subject);
 }
 
 void rGrokMatch_free(void *p) {
@@ -186,7 +187,11 @@ void Init_GrokMatch() {
   rb_define_method(cGrokMatch, "end", rGrokMatch_end, 0);
   rb_define_method(cGrokMatch, "subject", rGrokMatch_subject, 0);
   rb_define_method(cGrokMatch, "each_capture", rGrokMatch_each_capture, 0);
+
   id_atend = rb_intern("@end");
   id_atstart = rb_intern("@start");
   id_atcaptures = rb_intern("@captures");
+  id_atsubject = rb_intern("@subject");
+  id_length = rb_intern("length");
+  id_has_key_p = rb_intern("has_key?");
 }
