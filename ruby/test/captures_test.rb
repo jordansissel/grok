@@ -36,9 +36,53 @@ class GrokPatternCapturingTests < Test::Unit::TestCase
     assert_kind_of(Fixnum, match.end)
     assert_kind_of(String, match.subject)
     assert_equal(0, match.start,
-                 "Match of /.*/, start should equal 0"))
+                 "Match of /.*/, start should equal 0")
     assert_equal(input.length, match.end,
-                 "Match of /.*/, end should equal input string length"))
+                 "Match of /.*/, end should equal input string length")
     assert_equal(input, match.subject)
+  end
+
+  def test_multiple_captures_with_same_name
+    @grok.add_pattern("foo", "\\w+")
+    @grok.compile("%{foo} %{foo}")
+    match = @grok.match("hello world")
+    assert_not_equal(nil, match)
+    assert_equal(1, match.captures.length)
+    assert_equal(2, match.captures["foo"].length)
+    assert_equal("hello", match.captures["foo"][0])
+    assert_equal("world", match.captures["foo"][1])
+  end
+
+  def test_multiple_captures
+    @grok.add_pattern("foo", "\\w+")
+    @grok.add_pattern("bar", "\\w+")
+    @grok.compile("%{foo} %{bar}")
+    match = @grok.match("hello world")
+    assert_not_equal(nil, match)
+    assert_equal(2, match.captures.length)
+    assert_equal(1, match.captures["foo"].length)
+    assert_equal(1, match.captures["bar"].length)
+    assert_equal("hello", match.captures["foo"][0])
+    assert_equal("world", match.captures["bar"][0])
+  end
+
+  def test_nested_captures
+    @grok.add_pattern("foo", "\\w+ %{bar}")
+    @grok.add_pattern("bar", "\\w+")
+    @grok.compile("%{foo}")
+    match = @grok.match("hello world")
+    assert_not_equal(nil, match)
+    assert_equal(2, match.captures.length)
+    assert_equal(1, match.captures["foo"].length)
+    assert_equal(1, match.captures["bar"].length)
+    assert_equal("hello world", match.captures["foo"][0])
+    assert_equal("world", match.captures["bar"][0])
+  end
+
+  def test_nesting_recursion
+    @grok.add_pattern("foo", "%{foo}")
+    assert_raises(ArgumentError) do
+      @grok.compile("%{foo}")
+    end
   end
 end
