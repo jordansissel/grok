@@ -27,6 +27,8 @@ VALUE rGrokMatch_new_from_grok_match(grok_match_t *gm) {
   rgrokmatch = Data_Make_Struct(cGrokMatch, grok_match_t, 0,
                                 rGrokMatch_free, my_gm);
   memcpy(my_gm, gm, sizeof(grok_match_t));
+  my_gm->subject = strdup(gm->subject);
+  //my_gm->subject = strdup(my_gm->subject);
   rb_obj_call_init(rgrokmatch, 0, 0);
   return rgrokmatch;
 }
@@ -79,7 +81,6 @@ VALUE rGrokMatch_each_capture(VALUE self) {
 #else
     key = rb_tainted_str_new(name, namelen);
 #endif
-
     value = rb_tainted_str_new(data, datalen);
 
     // Yield [key, value]
@@ -112,7 +113,8 @@ VALUE rGrokMatch_captures(VALUE self) {
 
   grok_match_walk_init(gm);
   while (grok_match_walk_next(gm, &name, &namelen, &data, &datalen) == 0) {
-    VALUE key, value;
+    VALUE key = Qnil;
+    VALUE value = Qnil;
 
 #ifdef _TRIM_KEY_EXCESS_IN_C_
   /* This section will skip captures of %{FOO} and rename captures of
@@ -174,8 +176,18 @@ VALUE rGrokMatch_subject(VALUE self) {
   return rb_tainted_str_new2(gm->subject);
 }
 
+VALUE rGrokMatch_debug(VALUE self) {
+  grok_match_t *gm;
+  Data_Get_Struct(self, grok_match_t, gm);
+  printf("match subject: %s\n", gm->subject);
+  printf("match start: %d\n", gm->start);
+  printf("match end: %d\n", gm->end);
+  printf("grok pattern: %s\n", gm->grok->pattern);
+}
+
 void rGrokMatch_free(void *p) {
-  /* empty */
+  //grok_match_t *gm = (grok_match_t *)p;
+  //free((char *)gm->subject);
 }
 
 void Init_GrokMatch() {
@@ -187,6 +199,8 @@ void Init_GrokMatch() {
   rb_define_method(cGrokMatch, "end", rGrokMatch_end, 0);
   rb_define_method(cGrokMatch, "subject", rGrokMatch_subject, 0);
   rb_define_method(cGrokMatch, "each_capture", rGrokMatch_each_capture, 0);
+
+  //rb_define_method(cGrokMatch, "debug", rGrokMatch_debug, 0);
 
   id_atend = rb_intern("@end");
   id_atstart = rb_intern("@start");
