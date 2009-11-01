@@ -17,18 +17,32 @@ class NumberPatternsTest < Test::Unit::TestCase
       assert_not_equal(false, match)
       assert_equal(value.to_s, match.captures["NUMBER"][0])
     end
+  end
 
+  def test_match_number_float
+    # generate some random floating point values
+    # always seed with the same random number, so the test is always the same
+    srand(0)
+    @grok.compile("%{NUMBER}")
     0.upto(1000) do |value|
       value = (rand * 100000 - 50000).to_s
       match = @grok.match(value)
       assert_not_equal(false, match)
       assert_equal(value, match.captures["NUMBER"][0])
     end
+  end
 
+  def test_match_number_admid_things
+    @grok.compile("%{NUMBER}")
     value = "hello 12345 world"
     match = @grok.match(value)
     assert_not_equal(false, match)
     assert_equal("12345", match.captures["NUMBER"][0])
+
+    value = "Something costs $55.4!"
+    match = @grok.match(value)
+    assert_not_equal(false, match)
+    assert_equal("55.4", match.captures["NUMBER"][0])
   end
 
   def test_no_match_number
