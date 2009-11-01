@@ -5,7 +5,8 @@ require 'test/unit'
 class NumberPatternsTest < Test::Unit::TestCase
   def setup
     @grok = Grok.new
-    @grok.add_patterns_from_file("../../../grok-patterns")
+    path = "#{File.dirname(__FILE__)}/../../../grok-patterns"
+    @grok.add_patterns_from_file(path)
   end
 
   def test_match_number
