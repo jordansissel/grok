@@ -12,12 +12,17 @@ class NumberPatternsTest < Test::Unit::TestCase
     @grok.compile("%{NUMBER}")
     # step of a prime number near 100 so we get about 2000 iterations
     # with a somewhat random selection numbers.
-    count = 0
     -100000.step(100000, 97) do |value|
-      count += 1
       match = @grok.match(value.to_s)
       assert_not_equal(false, match)
       assert_equal(value.to_s, match.captures["NUMBER"][0])
+    end
+
+    0.upto(1000) do |value|
+      value = (rand * 100000 - 50000).to_s
+      match = @grok.match(value)
+      assert_not_equal(false, match)
+      assert_equal(value, match.captures["NUMBER"][0])
     end
 
     value = "hello 12345 world"
