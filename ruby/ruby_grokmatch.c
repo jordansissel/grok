@@ -27,8 +27,16 @@ VALUE rGrokMatch_new_from_grok_match(grok_match_t *gm) {
   rgrokmatch = Data_Make_Struct(cGrokMatch, grok_match_t, 0,
                                 rGrokMatch_free, my_gm);
   memcpy(my_gm, gm, sizeof(grok_match_t));
+
+  /* We must strdup here, otherwise ruby GC may come and re-arrange
+   * rb_str2cstr() can give a pointer to an object that is later deleted. When
+   * deleted, we won't know about it, and we'll get a garbage string from that
+   * pointer.
+   *
+   * TODO(sissel): make a GrokMatch 'ruby' friendly struct
+   * that uses VALUE types for subject.
+   */
   my_gm->subject = strdup(gm->subject);
-  //my_gm->subject = strdup(my_gm->subject);
   rb_obj_call_init(rgrokmatch, 0, 0);
   return rgrokmatch;
 }
@@ -186,8 +194,8 @@ VALUE rGrokMatch_debug(VALUE self) {
 }
 
 void rGrokMatch_free(void *p) {
-  //grok_match_t *gm = (grok_match_t *)p;
-  //free((char *)gm->subject);
+  grok_match_t *gm = (grok_match_t *)p;
+  free((char *)gm->subject);
 }
 
 void Init_GrokMatch() {

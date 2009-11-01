@@ -16,6 +16,10 @@ static VALUE rGrok_initialize(VALUE self) {
 
 static void rGrok_free(void *p) {
   grok_t *grok = (grok_t *)p;
+
+  /* we strdup our pattern from ruby and rb_str2cstr */
+  free(grok->pattern);
+
   grok_free(grok);
   free(grok);
 }
@@ -24,7 +28,6 @@ VALUE rGrok_new(VALUE klass) {
   VALUE rgrok;
   grok_t *grok = ALLOC(grok_t);
   grok_init(grok);
-  //grok->logmask = ~0;
   rgrok = Data_Wrap_Struct(klass, 0, rGrok_free, grok);
   rb_obj_call_init(rgrok, 0, 0);
   return rgrok;
@@ -32,11 +35,23 @@ VALUE rGrok_new(VALUE klass) {
 
 VALUE rGrok_compile(VALUE self, VALUE pattern) {
   grok_t *grok;
-  char *c_pattern;
-  long len;
-  int ret;
+  char *c_pattern = NULL;
+  char *str = NULL;
+  long len = 0;
+  int ret = 0;
   Data_Get_Struct(self, grok_t, grok);
-  c_pattern = rb_str2cstr(pattern, &len);
+
+  /* Need strdup here in case 'pattern' object is deleted later in 
+   * the ruby code */
+  str = rb_str2cstr(pattern, &len);
+  c_pattern = strndup(str, len);
+
+  if (grok->pattern != NULL) {
+    /* if we've already called compile, let's free up the string we
+     * allocated last time */
+    free(grok->pattern);
+  }
+
   ret = grok_compilen(grok, c_pattern, (int)len);
   if (ret) {
     rb_raise(rb_eArgError, "Compile failed: %s", grok->errstr);
@@ -79,6 +94,8 @@ VALUE rGrok_add_pattern(VALUE self, VALUE name, VALUE pattern) {
   char *c_name= NULL, *c_pattern = NULL;
   long namelen = 0, patternlen = 0;
 
+  /* Don't need strdup here, since grok_pattern_add will store a copy
+   * if the data */
   c_name = rb_str2cstr(name, &namelen);
   c_pattern = rb_str2cstr(pattern, &patternlen);
   Data_Get_Struct(self, grok_t, grok);
@@ -93,6 +110,7 @@ VALUE rGrok_add_patterns_from_file(VALUE self, VALUE path) {
   char *c_path = NULL;
   long pathlen = 0;
 
+  /* don't need strdup here, since we don't store 'path' long-term */
   c_path = rb_str2cstr(path, &pathlen);
   Data_Get_Struct(self, grok_t, grok);
 
