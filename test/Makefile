@@ -16,6 +16,14 @@ test:
 	@for t in $(TESTS:.c=); do \
 		./runtest.sh $$t; \
 	done
+	$(MAKE) test-ruby
+
+.PHONY: test-ruby
+test-ruby:
+	cd ../ruby; \
+	ruby extconf.rb; \
+	$(MAKE); \
+	ruby test/alltests.rb
 
 %.c: gentest.sh
 
