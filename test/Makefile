@@ -29,6 +29,7 @@ stringhelper.test: stringhelper.o
 grok_pattern.test: $(GROKOBJ)
 grok_capture.test: $(GROKOBJ)
 grok_simple.test: $(GROKOBJ)
+grok_manymanymany.test: $(GROKOBJ)
 predicates.test: $(GROKOBJ)
 
 %.test: %.test.o 
