@@ -17,6 +17,7 @@ void grok_init(grok_t *grok) {
   pcre_callout = grok_pcre_callout;
 
   grok->re = NULL;
+  grok->pattern = NULL;
   grok->full_pattern = NULL;
   grok->pcre_capture_vector = NULL;
   grok->pcre_num_captures = 0;

@@ -80,7 +80,13 @@ int grok_compile(grok_t *grok, const char *pattern) {
 int grok_compilen(grok_t *grok, const char *pattern, int length) {
   grok_log(grok, LOG_COMPILE, "Compiling '%s'", pattern);
   grok->pattern = pattern;
-  grok->full_pattern = grok_pattern_expand(grok); //, 0, strlen(pattern));
+  grok->full_pattern = grok_pattern_expand(grok);
+
+  if (grok->full_pattern == NULL) {
+    grok_log(grok, LOG_COMPILE, "A failure occurred while compiling '%.*s'",
+             length, pattern);
+    return GROK_ERROR_COMPILE_FAILED;
+  }
 
   grok->re = pcre_compile(grok->full_pattern, 0, 
                           &grok->pcre_errptr, &grok->pcre_erroffset,
@@ -161,6 +167,7 @@ char *grok_pattern_expand(grok_t *grok) {
   int capture_id = 0; /* Starting capture_id, doesn't really matter what this is */
   int offset = 0; /* string offset; how far we've expanded so far */
   int *capture_vector = NULL;
+  int replacement_count = 0; /* count of replacements of %{foo} with a regexp */
 
   int full_len = -1;
   int full_size = -1;
@@ -183,6 +190,14 @@ char *grok_pattern_expand(grok_t *grok) {
     const char *pattern_regex;
     int patname_len;
     size_t regexp_len;
+
+    replacement_count++;
+    if (replacement_count > 500) {
+      free(capture_vector);
+      free(full_pattern);
+      grok->errstr = "Too many replacements have occurred (500), infinite recursion?";
+      return NULL;
+    }
 
     start = capture_vector[0];
     end = capture_vector[1];
