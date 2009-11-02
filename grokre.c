@@ -284,7 +284,6 @@ char *grok_pattern_expand(grok_t *grok) {
                pattern_regex);
       grok_log(grok, LOG_REGEXPAND, ":: STR: %.*s", full_len, full_pattern);
 
-
       /* Invariant, full_pattern actual len must always be full_len */
       assert(strlen(full_pattern) == full_len);
       
