@@ -22,9 +22,9 @@ int grok_pattern_find(grok_t *grok, const char *name, size_t name_len,
   *regexp = tctreeget(patterns, name, name_len, (int*) regexp_len);
 
   grok_log(grok, LOG_PATTERNS, "Searching for pattern '%s' (%s): %.*s",
-           name, *regexp == NULL ? "found" : "not found", *regexp_len, *regexp);
+           name, *regexp == NULL ? "not found" : "found", *regexp_len, *regexp);
   if (*regexp == NULL) {
-    grok_log(grok, LOG_PATTERNS, "Searching for pattern '%s': not found", name);
+    grok_log(grok, LOG_PATTERNS, "pattern '%s': not found", name);
     *regexp = NULL;
     *regexp_len = 0;
     return GROK_ERROR_PATTERN_NOT_FOUND;
