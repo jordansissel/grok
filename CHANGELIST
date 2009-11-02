@@ -1,3 +1,14 @@
+20091102
+  - Add a bunch of tests, mostly in ruby, to exercise grok. This uncovered a 
+    few bugs which are fixed.
+    All tests currently pass (both CUnit and Ruby Test::Unit) on:
+    * FreeBSD 7.1. tokyocabinet 1.4.30, pcre 8.00, libevent 1.4.12
+    * Ubuntu 9.04. tokyocabinet 1.4.35, pcre 7.8-2, libevent 1.3e-3 
+    * CentOS 5.3. tokyocabinet 1.4.9-1, pcre 7.8-2, libevent 1.1a-3.2.1
+  - When making strings in ruby, we now make them tainted per ruby C docs.
+  - "Too many replacements" error will now occur if you have cyclic patterns,
+    such as defining 'FOO' to be '%{FOO}'. Max replacements is 500.
+
 20091030
   - Make 'grok' main take a config for an argument.
   - Add grok rpm spec.
