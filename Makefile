@@ -4,6 +4,9 @@ CFLAGS+=-O2
 #CFLAGS+=-g
 
 PLATFORM=$(shell (uname -o || uname -s) 2> /dev/null)
+FLEX?=flex
+
+FORCE?=0
 
 # On FreeBSD, you may want to set GPERF=/usr/local/bin/gperf since
 # the base system gperf is too old.
@@ -37,8 +40,8 @@ LDFLAGS+=$(EXTRA_LDFLAGS)
 
 ### End of user-servicable configuration
 
-CLEANGEN=filters.c grok_matchconf_macro.c
-CLEANOBJ=*.o *_xdr.[ch] *.yy.c *.tab.c *.tab.h
+CLEANGEN=filters.c grok_matchconf_macro.c *.yy.c *.tab.c *.tab.h
+CLEANOBJ=*.o *_xdr.[ch]
 CLEANBIN=main grokre grok conftest grok_program
 
 GROKOBJ=grok.o grokre.o grok_capture.o grok_pattern.o stringhelper.o \
@@ -138,7 +141,7 @@ grok_capture_xdr.h: grok_capture.x
 	rpcgen -h $< -o $@
 
 %.c: %.gperf
-	if $(GPERF) --version | head -1 | egrep -v '3\.[0-9]+\.[0-9]+' ; then \
+	@if $(GPERF) --version | head -1 | egrep -v '3\.[0-9]+\.[0-9]+' ; then \
 		echo "We require gperf version >= 3.0.3" ; \
 		exit 1; \
 	fi
@@ -148,7 +151,18 @@ conf.tab.c conf.tab.h: conf.y
 	bison -d $<
 
 conf.yy.c: conf.lex conf.tab.h
-	flex -o $@ $<
+	@if $(FLEX) --version | grep '^flex version' ; then \
+		if [ "$(FORCE)" -eq 1 ] ; then \
+			echo "Bad version of flex detected, but FORCE is set, trying anyway."; \
+			exit 0; \
+		fi; \
+		echo "Fatal - cannot build"; \
+		echo "You need GNU flex. You seem to have BSD flex?"; \
+		strings `which flex` | grep Regents; \
+		echo "If you want to try your flex, anyway, set FORCE=1"; \
+		exit 1; \
+	fi
+	$(FLEX) -o $@ $<
 
 .c.o:
 	$(CC) -c $(CFLAGS) $< -o $@
