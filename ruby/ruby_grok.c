@@ -5,7 +5,6 @@
 
 VALUE cGrok; /* Grok class object */
 
-
 extern VALUE cGrokMatch;
 extern void Init_GrokMatch();
 
@@ -18,7 +17,9 @@ static void rGrok_free(void *p) {
   grok_t *grok = (grok_t *)p;
 
   /* we strdup our pattern from ruby and rb_str2cstr */
-  free(grok->pattern);
+  /* typecast to ignore warnings about freeing a const...
+   * TODO(sissel): Fix the constness */
+  free((char *)grok->pattern);
 
   grok_free(grok);
   free(grok);
@@ -28,6 +29,7 @@ VALUE rGrok_new(VALUE klass) {
   VALUE rgrok;
   grok_t *grok = ALLOC(grok_t);
   grok_init(grok);
+  //grok->logmask = ~0;
   rgrok = Data_Wrap_Struct(klass, 0, rGrok_free, grok);
   rb_obj_call_init(rgrok, 0, 0);
   return rgrok;
@@ -44,12 +46,15 @@ VALUE rGrok_compile(VALUE self, VALUE pattern) {
   /* Need strdup here in case 'pattern' object is deleted later in 
    * the ruby code */
   str = rb_str2cstr(pattern, &len);
-  c_pattern = strndup(str, len);
+  c_pattern = malloc(len);
+  memcpy(c_pattern, str, len);
 
   if (grok->pattern != NULL) {
     /* if we've already called compile, let's free up the string we
      * allocated last time */
-    free(grok->pattern);
+
+    /* typecast to break constness. TODO(sissel): fix const */
+    free((char *)grok->pattern);
   }
 
   ret = grok_compilen(grok, c_pattern, (int)len);
@@ -128,7 +133,7 @@ VALUE rGrok_expanded_pattern(VALUE self) {
   VALUE expanded_pattern;
 
   Data_Get_Struct(self, grok_t, grok);
-  expanded_pattern = rb_str_new2(grok->full_pattern);
+  expanded_pattern = rb_str_new(grok->full_pattern, grok->full_pattern_len);
   return expanded_pattern;
 }
 
@@ -137,7 +142,7 @@ VALUE rGrok_pattern(VALUE self) {
   VALUE pattern;
 
   Data_Get_Struct(self, grok_t, grok);
-  pattern = rb_str_new2(grok->pattern);
+  pattern = rb_str_new(grok->pattern, grok->pattern_len);
   return pattern;
 }
 
