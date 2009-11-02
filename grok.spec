@@ -2,7 +2,7 @@
 
 Summary: A powerful pattern matching system for parsing and processing text
 Name: grok
-Version: 20091030
+Version: 20091102
 Release: 1
 Group: System Environment/Utilities
 License: BSD

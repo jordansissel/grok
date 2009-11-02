@@ -51,6 +51,20 @@
 + ruby/ruby_grokmatch.c
 + ruby/ruby_grokmatch.h
 + ruby/sample.rb
++ ruby/test/
++ ruby/test/alltests.rb
++ ruby/test/general
++ ruby/test/general/basic_test.rb
++ ruby/test/general/captures_test.rb
++ ruby/test/patterns
++ ruby/test/patterns/ip.input
++ ruby/test/patterns/ip.rb
++ ruby/test/patterns/month.rb
++ ruby/test/patterns/number.rb
++ ruby/test/patterns/path.rb
++ ruby/test/patterns/quotedstring.rb
++ ruby/test/patterns/uri.rb
++ ruby/test/speedtest.rb
 + stringhelper.c
 + stringhelper.h
 + test/
@@ -63,6 +77,7 @@
 + test/runtest.sh
 + test/stringhelper.test.c
 + test/test.h
+
 - *
 - *.o
 - ruby/Makefile
