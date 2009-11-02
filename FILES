@@ -1,8 +1,8 @@
-+ CHANGELIST
-+ FILES
-+ INSTALL
-+ LICENSE
-+ Makefile
++ /CHANGELIST
++ /FILES
++ /INSTALL
++ /LICENSE
++ /Makefile
 + conf.lex
 + conf.tab.c
 + conf.tab.h

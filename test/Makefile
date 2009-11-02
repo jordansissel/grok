@@ -12,18 +12,17 @@ TESTS=$(wildcard *.test.c)
 #TESTS=grok_pattern.test.c grok_capture.test.c grok_simple.test.c 
 
 .PHONY: test
-test: 
+test: test-c test-ruby
+
+.PHONY: test-c
+test-c:
 	@for t in $(TESTS:.c=); do \
 		./runtest.sh $$t; \
 	done
-	$(MAKE) test-ruby
 
 .PHONY: test-ruby
 test-ruby:
-	cd ../ruby; \
-	ruby extconf.rb; \
-	$(MAKE); \
-	ruby test/alltests.rb
+	$(MAKE) -C ../ruby/test test
 
 %.c: gentest.sh
 
