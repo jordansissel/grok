@@ -315,6 +315,8 @@ char *grok_pattern_expand(grok_t *grok) {
   grok_log(grok, LOG_REGEXPAND, "Fully expanded: %.*s", full_len, full_pattern);
 
   free(capture_vector);
+  grok->full_pattern_len = full_len;
+  grok->full_pattern = full_pattern;
   return full_pattern;
 }
 

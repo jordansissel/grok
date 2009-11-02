@@ -25,6 +25,7 @@ struct grok {
   const char *pattern;
   int pattern_len;
   char *full_pattern;
+  int full_pattern_len;
   int *pcre_capture_vector;
   int pcre_num_captures;
   
