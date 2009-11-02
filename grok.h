@@ -23,6 +23,7 @@ struct grok {
   /* These are initialized when grok_compile is called */
   pcre *re;
   const char *pattern;
+  int pattern_len;
   char *full_pattern;
   int *pcre_capture_vector;
   int pcre_num_captures;
