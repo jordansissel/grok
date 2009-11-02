@@ -1,4 +1,4 @@
-require 'rubygems'
+#require 'rubygems'
 require 'Grok'
 require 'test/unit'
 
@@ -12,10 +12,10 @@ class NumberPatternsTest < Test::Unit::TestCase
   def test_match_number
     @grok.compile("%{NUMBER}")
     # step of a prime number near 100 so we get about 2000 iterations
-    # with a somewhat random selection numbers.
+    #puts @grok.expanded_pattern.inspect
     -100000.step(100000, 97) do |value|
       match = @grok.match(value.to_s)
-      assert_not_equal(false, match)
+      assert_not_equal(false, match, "#{value} should not match false")
       assert_equal(value.to_s, match.captures["NUMBER"][0])
     end
   end
@@ -33,7 +33,7 @@ class NumberPatternsTest < Test::Unit::TestCase
     end
   end
 
-  def test_match_number_admid_things
+  def test_match_number_amid_things
     @grok.compile("%{NUMBER}")
     value = "hello 12345 world"
     match = @grok.match(value)

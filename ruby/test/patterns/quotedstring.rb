@@ -1,4 +1,4 @@
-require 'rubygems'
+#require 'rubygems'
 require 'Grok'
 require 'test/unit'
 
