@@ -244,9 +244,6 @@ char *grok_pattern_expand(grok_t *grok) {
       //pcre_free_substring(longname);
       //pcre_free_substring(subname);
 
-      /* Invariant, full_pattern actual len must always be full_len */
-      assert(strlen(full_pattern) == full_len);
-
       /* if a predicate was given, add (?C1) to callout when the match is made,
        * so we can test it further */
       if (has_predicate) {
