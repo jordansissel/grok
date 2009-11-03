@@ -33,7 +33,7 @@ void yyerror (YYLTYPE *loc, struct config *conf, char const *s) {
 
 %token FILE_FOLLOW "follow"
 
-%token EXEC_RESTARTONFAIL "restart-on-failure"
+%token EXEC_RESTARTONEXIT "restart-on-exit"
 %token EXEC_MINRESTARTDELAY "minimum-restart-delay"
 %token EXEC_RUNINTERVAL "run-interval"
 %token EXEC_READSTDERR "read-stderr"
@@ -114,7 +114,7 @@ exec_block: exec_block exec_block_statement
           | exec_block_statement
           
 exec_block_statement: /* empty */
-          | "restart-on-failure" ':'  INTEGER 
+          | "restart-on-exit" ':'  INTEGER 
              { CURINPUT.source.process.restart_on_death = $3; }
           | "minimum-restart-delay" ':' INTEGER
              { CURINPUT.source.process.min_restart_delay = $3; }
