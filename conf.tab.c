@@ -76,7 +76,7 @@
      PROG_NOMATCH = 265,
      PROG_LOADPATTERNS = 266,
      FILE_FOLLOW = 267,
-     EXEC_RESTARTONFAIL = 268,
+     EXEC_RESTARTONEXIT = 268,
      EXEC_MINRESTARTDELAY = 269,
      EXEC_RUNINTERVAL = 270,
      EXEC_READSTDERR = 271,
@@ -100,7 +100,7 @@
 #define PROG_NOMATCH 265
 #define PROG_LOADPATTERNS 266
 #define FILE_FOLLOW 267
-#define EXEC_RESTARTONFAIL 268
+#define EXEC_RESTARTONEXIT 268
 #define EXEC_MINRESTARTDELAY 269
 #define EXEC_RUNINTERVAL 270
 #define EXEC_READSTDERR 271
@@ -506,7 +506,7 @@ static const char *const yytname[] =
 {
   "$end", "error", "$undefined", "QUOTEDSTRING", "INTEGER", "\"debug\"",
   "\"program\"", "\"file\"", "\"exec\"", "\"match\"", "\"no-match\"",
-  "\"load-patterns\"", "\"follow\"", "\"restart-on-failure\"",
+  "\"load-patterns\"", "\"follow\"", "\"restart-on-exit\"",
   "\"minimum-restart-delay\"", "\"run-interval\"", "\"read-stderr\"",
   "\"pattern\"", "\"reaction\"", "\"shell\"", "\"flush\"",
   "\"break-if-match\"", "\"stdout\"", "\"none\"", "'{'", "'}'", "';'",
