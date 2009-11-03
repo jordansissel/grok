@@ -2,7 +2,7 @@
 
 Summary: A powerful pattern matching system for parsing and processing text
 Name: grok
-Version: 20091102
+Version: 20091103
 Release: 1
 Group: System Environment/Utilities
 License: BSD
@@ -52,9 +52,11 @@ cd ..
 %{__mkdir_p} %{buildroot}%{_bindir}
 %{__mkdir_p} %{buildroot}%{_libdir}
 %{__mkdir_p} %{buildroot}%{_includedir}
+%{__mkdir_p} %{buildroot}%{_sharedir}
 %{__mkdir_p} %{buildroot}%{ruby_sitearchdir}
 install -c grok %{buildroot}/%{_bindir}
 install -c libgrok.so %{buildroot}/%{_libdir}
+#install -c patterns/base %{buildroot}/%{_sharedir}/
 for header in grok.h grokre.h grok_pattern.h grok_capture.h grok_capture_xdr.h grok_match.h grok_logging.h; do
  install -c $header %{buildroot}/%{_includedir}
 done

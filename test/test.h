@@ -21,4 +21,4 @@
 #define CLEANUP \
   grok_free(&grok);
 
-#define IMPORT_PATTERNS_FILE grok_patterns_import_from_file(&grok, "../grok-patterns")
+#define IMPORT_PATTERNS_FILE grok_patterns_import_from_file(&grok, "../patterns/base")

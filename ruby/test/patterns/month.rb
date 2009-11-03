@@ -5,7 +5,7 @@ require 'test/unit'
 class MonthPatternsTest < Test::Unit::TestCase
   def setup
     @grok = Grok.new
-    path = "#{File.dirname(__FILE__)}/../../../grok-patterns"
+    path = "#{File.dirname(__FILE__)}/../../../patterns/base"
     @grok.add_patterns_from_file(path)
     @grok.compile("%{MONTH}")
   end

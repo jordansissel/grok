@@ -256,6 +256,9 @@ int grok_predicate_strcompare_init(grok_t *grok, grok_capture *gct,
 
   gpst->op = strop(args, args_len);
   pos = OP_LEN(gpst->op);
+  pos += strspn(args + pos, " ");
+  grok_log(grok, LOG_PREDICATE, "String compare rvalue: '%.*s'",
+           args_len - pos, args + pos);
 
   /* XXX: ALLOC */
   gpst->len = args_len - pos;
@@ -279,8 +282,8 @@ int grok_predicate_strcompare(grok_t *grok, const grok_capture *gct,
          strncmp(subject + start, gpst->value, (end - start)),
          ret);
 
-  grok_log(grok, LOG_PREDICATE, "Compare: '%.*s' vs '%s' == %s",
-           (end - start), subject + start, gpst->value,
+  grok_log(grok, LOG_PREDICATE, "Compare: '%.*s' vs '%.*s' == %s",
+           (end - start), subject + start, gpst->len, gpst->value,
            (ret) ? "false" : "true");
 
   /* grok predicates should return 0 for success, 
