@@ -1,4 +1,5 @@
 %{!?ruby_sitearchdir: %define ruby_sitearchdir %(/usr/bin/ruby -rrbconfig -e "puts Config::CONFIG['sitearchdir']")}
+%define _sharedir /usr/share/grok
 
 Summary: A powerful pattern matching system for parsing and processing text
 Name: grok
@@ -52,11 +53,11 @@ cd ..
 %{__mkdir_p} %{buildroot}%{_bindir}
 %{__mkdir_p} %{buildroot}%{_libdir}
 %{__mkdir_p} %{buildroot}%{_includedir}
-%{__mkdir_p} %{buildroot}%{_sharedir}
+%{__mkdir_p} %{buildroot}%{_sharedir}/patterns
 %{__mkdir_p} %{buildroot}%{ruby_sitearchdir}
 install -c grok %{buildroot}/%{_bindir}
 install -c libgrok.so %{buildroot}/%{_libdir}
-#install -c patterns/base %{buildroot}/%{_sharedir}/
+install -c patterns/base %{buildroot}%{_sharedir}/patterns/base
 for header in grok.h grokre.h grok_pattern.h grok_capture.h grok_capture_xdr.h grok_match.h grok_logging.h; do
  install -c $header %{buildroot}/%{_includedir}
 done
@@ -71,6 +72,9 @@ cd ..
 %defattr(-,root,root)
 %{_bindir}/grok
 %{_libdir}/libgrok.so
+%dir %{_sharedir}
+%dir %{_sharedir}/patterns
+%{_sharedir}/patterns/base
 
 %files ruby
 %{ruby_sitearchdir}/Grok.so
