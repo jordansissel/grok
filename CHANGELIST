@@ -1,3 +1,8 @@
+20091103: minor changes 
+  - Change 'WORD' pattern to be word bounded (\b)
+  - Move grok-patterns to patterns/base
+  - update rpm spec to install patterns/base in /usr/share/grok
+
 20091102
   - Add a bunch of tests, mostly in ruby, to exercise grok. This uncovered a 
     few bugs which are fixed.
