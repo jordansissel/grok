@@ -1,0 +1,22 @@
+program {
+  load-patterns: "patterns/base"
+  exec "echo '$something \"testing\"'"
+
+  match {
+    pattern: ".*"
+    reaction: "Shell escaped: %{@LINE|shellescape}"
+  }
+
+  match {
+    pattern: ".*"
+    reaction: "json: { myvalue: \"%{@LINE|jsonencode}\" }"
+  }
+
+  match {
+    pattern: ".*"
+    reaction: "echo %{@LINE|shellescape}"
+    shell: "/bin/sh"
+    flush: yes
+  }
+
+}

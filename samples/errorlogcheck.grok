@@ -1,0 +1,16 @@
+program {
+  exec "since /var/log/messages"
+
+  # Ignore certain messages
+  match {
+    pattern: "this is not an error"
+
+    # Silence the output and ensure no further matches are attempted.
+    reaction: none        # no output
+    break-if-match: yes   # don't continue to the next match
+  }
+
+  match {
+    pattern: "error"
+  }
+}

@@ -1,0 +1,9 @@
+program {
+  load-patterns: "patterns/base"
+  exec "echo 3 5 19 33 10"
+
+  match {
+    pattern: "%{NUMBER > 20}"
+    reaction: "Got number: %{NUMBER}"
+  }
+}

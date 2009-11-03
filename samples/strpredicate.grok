@@ -1,0 +1,9 @@
+program {
+  load-patterns: "patterns/base"
+  exec "echo hello; echo world"
+
+  match {
+    pattern: "%{WORD $> test}"
+    reaction: "Found: %{WORD}"
+  }
+}
