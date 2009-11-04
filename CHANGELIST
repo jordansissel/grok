@@ -1,4 +1,5 @@
-20091103: minor changes 
+20091103
+  - New: ruby bindings are now really supported.
   - Change 'WORD' pattern to be word bounded (\b)
   - Move grok-patterns to patterns/base
   - update rpm spec to install patterns/base in /usr/share/grok
