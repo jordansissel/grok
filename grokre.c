@@ -79,6 +79,13 @@ int grok_compile(grok_t *grok, const char *pattern) {
 
 int grok_compilen(grok_t *grok, const char *pattern, int length) {
   grok_log(grok, LOG_COMPILE, "Compiling '%.*s'", length, pattern);
+
+  /* clear the old tctree data */
+  tctreeclear(grok->captures_by_id);
+  tctreeclear(grok->captures_by_capture_number);
+  tctreeclear(grok->captures_by_name);
+  tctreeclear(grok->captures_by_subname);
+
   grok->pattern = pattern;
   grok->pattern_len = length;
   grok->full_pattern = grok_pattern_expand(grok);
