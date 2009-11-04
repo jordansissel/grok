@@ -191,6 +191,7 @@ VALUE rGrokMatch_debug(VALUE self) {
   printf("match start: %d\n", gm->start);
   printf("match end: %d\n", gm->end);
   printf("grok pattern: %s\n", gm->grok->pattern);
+  return Qnil;
 }
 
 void rGrokMatch_free(void *p) {
