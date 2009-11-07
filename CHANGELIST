@@ -1,3 +1,6 @@
+????????
+  - match {} blocks can now have multiple 'pattern:' instances
+
 20091103
   - New: ruby bindings are now really supported.
   - Change 'WORD' pattern to be word bounded (\b)
