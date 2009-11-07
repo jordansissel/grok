@@ -93,6 +93,8 @@ int grok_compilen(grok_t *grok, const char *pattern, int length) {
   if (grok->full_pattern == NULL) {
     grok_log(grok, LOG_COMPILE, "A failure occurred while compiling '%.*s'",
              length, pattern);
+    grok->errstr = "failure occurred while expanding pattern "\
+                   "(too pattern recursion?)";
     return GROK_ERROR_COMPILE_FAILED;
   }
 

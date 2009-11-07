@@ -14,7 +14,7 @@ struct grok_reaction {
 };
 
 struct grok_matchconf {
-  grok_t grok; /* The grok pattern to match */
+  TCLIST *grok_list; /* List of groks to apply to this match config */
   char *reaction;
   char *shell;
   int flush; /* flush on every write to the shell? */

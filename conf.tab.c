@@ -1578,7 +1578,7 @@ yyreduce:
 
   case 46:
 #line 131 "conf.y"
-    { grok_compile(&CURMATCH.grok, (yyvsp[(3) - (3)].str)); ;}
+    { conf_new_match_pattern(conf, (yyvsp[(3) - (3)].str)) ;}
     break;
 
   case 47:
@@ -1613,7 +1613,7 @@ yyreduce:
 
   case 53:
 #line 138 "conf.y"
-    { CURMATCH.grok.logmask = DEBUGMASK((yyvsp[(3) - (3)].num)); ;}
+    { conf_match_set_debug(conf, DEBUGMASK((yyvsp[(3) - (3)].num))); ;}
     break;
 
 

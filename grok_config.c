@@ -1,6 +1,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <tcutil.h>
 
 #include "grok_input.h"
 #include "grok_config.h"
@@ -89,15 +90,44 @@ void conf_new_matchconf(struct config *conf) {
   }
 
   grok_matchconfig_init(&CURPROGRAM, &CURMATCH);
-  grok_init(&CURMATCH.grok);
-
-  int i = 0;
-  for (i = 0; i < CURPROGRAM.npatternfiles; i++) {
-    grok_patterns_import_from_file(&CURMATCH.grok, CURPROGRAM.patternfiles[i]);
-  }
-  SETLOG(CURPROGRAM, CURMATCH.grok);
 
   /* Set sane defaults. */
   CURMATCH.reaction = "%{@LINE}";
   CURMATCH.shell = "stdout";
 }
+
+void conf_new_match_pattern(struct config *conf, const char *pattern) {
+  int compile_ret;
+  grok_t *grok;
+  grok = malloc(sizeof(grok_t));
+  grok_init(grok);
+
+  int i = 0;
+  for (i = 0; i < CURPROGRAM.npatternfiles; i++) {
+    grok_patterns_import_from_file(grok, CURPROGRAM.patternfiles[i]);
+  }
+  SETLOG(CURPROGRAM, *grok);
+
+  compile_ret = grok_compile(grok, pattern);
+  if (compile_ret != GROK_OK) {
+    fprintf(stderr, "Failure compiling pattern '%s': %s\n",
+            pattern, grok->errstr);
+    exit(1);
+  }
+
+  tclistpush(CURMATCH.grok_list, grok, sizeof(grok_t));
+}
+
+void conf_match_set_debug(struct config *conf, int logmask) {
+  int i = 0;
+  int listsize = tclistnum(CURMATCH.grok_list);
+  int unused_len;
+
+  for (i = 0; i < listsize; i++) {
+    grok_t *grok;
+    grok = (grok_t *)tclistval(CURMATCH.grok_list, i, &unused_len);
+    grok->logmask = logmask;
+    tclistover(CURMATCH.grok_list, i, grok, sizeof(grok_t));
+  }
+}
+

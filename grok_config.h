@@ -23,4 +23,6 @@ void conf_new_program(struct config *conf);
 void conf_new_input(struct config *conf);
 void conf_new_input_process(struct config *conf, char *cmd);
 void conf_new_input_file(struct config *conf, char *filename);
-
+void conf_new_matchconf(struct config *conf);
+void conf_new_match_pattern(struct config *conf, const char *pattern);
+void conf_match_set_debug(struct config *conf, int logmask);

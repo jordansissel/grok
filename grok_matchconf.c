@@ -17,7 +17,7 @@ static int mcgrok_init = 0;
 static grok_t global_matchconfig_grok;
 
 void grok_matchconfig_init(grok_program_t *gprog, grok_matchconf_t *gmc) {
-  grok_init(&gmc->grok);
+  gmc->grok_list = tclistnew();
   gmc->shell = NULL;
   gmc->reaction = NULL;
   gmc->shellinput = NULL;
@@ -53,7 +53,14 @@ void grok_matchconfig_close(grok_program_t *gprog, grok_matchconf_t  *gmc) {
     }
     gmc->shellinput = NULL;
   }
-  grok_free(&gmc->grok);
+
+  int i = 0;
+  for (i = 0; i < tclistnum(gmc->grok_list); i++) {
+    int len;
+    grok_t *grok = (grok_t *) tclistval(gmc->grok_list, i, &len);
+    grok_free(grok);
+  }
+  tclistdel(gmc->grok_list);
 }
 
 void grok_matchconfig_exec(grok_program_t *gprog, grok_input_t *ginput,
@@ -66,22 +73,28 @@ void grok_matchconfig_exec(grok_program_t *gprog, grok_input_t *ginput,
   for (i = 0; i < gprog->nmatchconfigs; i++) {
     int ret;
     gmc = &gprog->matchconfigs[i];
-    grok = &gmc->grok;
+    int num_groks = tclistnum(gmc->grok_list);
+    int i = 0;
     if (gmc->is_nomatch) {
       continue;
     }
 
-    grok_log(gprog, LOG_PROGRAM, "Trying match against : %s",
-             gmc->reaction);
-    ret = grok_exec(grok, text, &gm);
-    if (ret == GROK_OK) {
-      grok_matchconfig_react(gprog, ginput, gmc, &gm);
-      if (!gmc->no_reaction) {
-        gprog->reactions += 1;
-      }
+    for (i = 0; i < num_groks; i++) {
+      grok_t *grok;
+      int unused_len;
+      grok = (grok_t *)tclistval(gmc->grok_list, i, &unused_len);
+      grok_log(gprog, LOG_PROGRAM, "Trying match against pattern %d: %.*s",
+               i, grok->pattern_len, grok->pattern); 
+      ret = grok_exec(grok, text, &gm);
+      if (ret == GROK_OK) {
+        grok_matchconfig_react(gprog, ginput, gmc, &gm);
+        if (!gmc->no_reaction) {
+          gprog->reactions += 1;
+        }
 
-      if (gmc->break_if_match) {
-        break;
+        if (gmc->break_if_match) {
+          break;
+        }
       }
     }
   }

@@ -128,13 +128,11 @@ match_block: match_block match_block_statement
            | match_block_statement
 
 match_block_statement: /* empty */
-           | "pattern" ':' QUOTEDSTRING { grok_compile(&CURMATCH.grok, $3); }
+           | "pattern" ':' QUOTEDSTRING { conf_new_match_pattern(conf, $3) }
            | "reaction" ':' QUOTEDSTRING { CURMATCH.reaction = $3; }
            | "reaction" ':' "none" { CURMATCH.no_reaction = 1; }
            | "shell" ':' QUOTEDSTRING { CURMATCH.shell = $3; }
            | "shell" ':' "stdout" { CURMATCH.shell = "stdout"; }
            | "flush" ':' INTEGER { CURMATCH.flush = $3; }
            | "break-if-match" ':' INTEGER { CURMATCH.break_if_match = $3; }
-           | "debug" ':' INTEGER { CURMATCH.grok.logmask = DEBUGMASK($3); }
-
-
+           | "debug" ':' INTEGER { conf_match_set_debug(conf, DEBUGMASK($3)); }
