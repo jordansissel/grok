@@ -70,6 +70,7 @@ void grok_matchconfig_exec(grok_program_t *gprog, grok_input_t *ginput,
   grok_matchconf_t *gmc;
   int i = 0;
 
+  int want_break = 0;
   for (i = 0; i < gprog->nmatchconfigs; i++) {
     int ret;
     gmc = &gprog->matchconfigs[i];
@@ -93,9 +94,14 @@ void grok_matchconfig_exec(grok_program_t *gprog, grok_input_t *ginput,
         }
 
         if (gmc->break_if_match) {
+          want_break = 1;
           break;
         }
       }
+    }
+
+    if (want_break) {
+      break;
     }
   }
 }
