@@ -1,4 +1,7 @@
 ????????
+  - Add function to get the list of loaded patterns.
+  - Ruby: new method Grok#patterns returns dictionary of known patterns.
+20091110
   - match {} blocks can now have multiple 'pattern:' instances
 
 20091103
