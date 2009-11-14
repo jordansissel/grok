@@ -5,6 +5,23 @@
 #include "grok.h"
 #include "grok_pattern.h"
 
+TCLIST *grok_pattern_name_list(grok_t *grok) {
+  TCLIST *names;
+  const void *data;
+  int datalen;
+  TCTREE *patterns = grok->patterns;
+  names = tclistnew();
+
+  tctreeiterinit(patterns);
+
+  while ((data = tctreeiternext(patterns, &datalen)) != NULL) {
+    printf("Got key %.*s\n", datalen, data);
+    tclistpush(names, data, datalen);
+  }
+
+  return names;
+}
+
 int grok_pattern_add(grok_t *grok, const char *name, size_t name_len,
                       const char *regexp, size_t regexp_len) {
   TCTREE *patterns = grok->patterns;
@@ -120,3 +137,4 @@ void _pattern_parse_string(const char *line,
   *regexp = line + offset;
   *regexp_len = strlen(line) - (*regexp - line);
 }
+

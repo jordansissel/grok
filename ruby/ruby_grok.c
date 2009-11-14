@@ -146,6 +146,34 @@ VALUE rGrok_pattern(VALUE self) {
   return pattern;
 }
 
+VALUE rGrok_patterns(VALUE self) {
+  VALUE patternmap = rb_hash_new();
+  TCLIST *names = NULL;
+  grok_t *grok = NULL;
+  int i = 0, len = 0;
+
+  Data_Get_Struct(self, grok_t, grok);
+  names = grok_pattern_name_list(grok);
+
+  len = tclistnum(names);
+  printf("list len: %d\n", len);
+  for (i = 0; i < len; i++)  {
+    int namelen = 0;
+    const char *name = tclistval(names, i, &namelen);
+    size_t regexplen = 0;
+    const char *regexp = NULL;
+    grok_pattern_find(grok, name, namelen, &regexp, &regexplen);
+
+    VALUE key;
+    VALUE value;
+    key = rb_tainted_str_new(name, namelen);
+    value = rb_tainted_str_new(regexp, regexplen);
+    rb_hash_aset(patternmap, key, value);
+  }
+  tclistdel(names);
+  return patternmap;
+}
+
 void Init_Grok() {
   cGrok = rb_define_class("Grok", rb_cObject);
   rb_define_singleton_method(cGrok, "new", rGrok_new, 0);
@@ -157,6 +185,7 @@ void Init_Grok() {
   rb_define_method(cGrok, "add_pattern", rGrok_add_pattern, 2);
   rb_define_method(cGrok, "add_patterns_from_file",
                    rGrok_add_patterns_from_file, 1);
+  rb_define_method(cGrok, "patterns", rGrok_patterns, 0);
 
   Init_GrokMatch();
 }
