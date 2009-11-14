@@ -15,7 +15,6 @@ TCLIST *grok_pattern_name_list(grok_t *grok) {
   tctreeiterinit(patterns);
 
   while ((data = tctreeiternext(patterns, &datalen)) != NULL) {
-    printf("Got key %.*s\n", datalen, data);
     tclistpush(names, data, datalen);
   }
 

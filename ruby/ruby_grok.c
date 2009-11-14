@@ -156,7 +156,6 @@ VALUE rGrok_patterns(VALUE self) {
   names = grok_pattern_name_list(grok);
 
   len = tclistnum(names);
-  printf("list len: %d\n", len);
   for (i = 0; i < len; i++)  {
     int namelen = 0;
     const char *name = tclistval(names, i, &namelen);
