@@ -3,6 +3,7 @@
   - Ruby: new method Grok#patterns returns dictionary of known patterns.
 20091110
   - match {} blocks can now have multiple 'pattern:' instances
+  - Include samples/ directory of grok configs in release package.
 
 20091103
   - New: ruby bindings are now really supported.
