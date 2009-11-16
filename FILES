@@ -10,8 +10,11 @@
 + conf.yy.c
 + filters.gperf
 + filters.h
++ genfiles.sh
++ grok.1
 + grok.c
 + grok.h
++ grok.pod
 + grok.spec
 + grok_capture.c
 + grok_capture.h
