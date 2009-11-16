@@ -1,0 +1,235 @@
+=pod
+
+=head1 NAME
+
+grok - parse logs, handle events, and make your unstructured text structured.
+
+=head1 SYNOPSIS
+
+B<grok> I<configfile>
+
+=head1 DESCRIPTION
+
+Grok is software that allows you to easily parse logs and other files.
+With grok, you can turn unstructured log and event data into structured data.
+
+The grok program is a great tool for parsing log data and program output. You
+can match any number of complex patterns on any number of inputs (processes and
+files) and have custom reactions. 
+
+=head1 CONFIGURATION
+
+You can call the config file anything you want. A full example config follows
+below, with documentation on options and defaults.
+
+ # --- Begin sample grok config
+ # This is a comment. :)
+ #
+ # enable or disable debugging. Debug is set false by default.
+ # the 'debug' setting is valid at every level.
+ # debug values are copied down-scope unless overridden.
+ debug: true
+
+ # you can define multiple program blocks in a config file.
+ # a program is just a collection of inputs (files, execs) and
+ # matches (patterns and reactions),
+ program {
+   debug: false
+
+   # file with no block. settings block is optional
+   file "/var/log/messages"
+
+   # file with a block
+   file "/var/log/secure" {
+     # follow means to follow a file like 'tail -F' but starts
+     # reading at the beginning of the file.  A file is followed
+     # through truncation, log rotation, and append.
+     follow: true
+   }
+
+   # execute a command, settings block is optional
+   exec "netstat -rn"
+
+   # exec with a block
+   exec "ping -c 1 www.google.com" {
+     # automatically rerun the exec if it exits, as soon as it exits.
+     # default is false
+     restart-on-exit: false
+
+     # minimum amount of time from one start to the next start, if we
+     # are restarting. Default is no minimum
+     minimum-restart-interval: 5
+
+     # run every N seconds, but only if the process has exited.
+     # default is not to rerun at all.
+     run-interval: 60
+
+     # default is to read process output only from stdout.
+     # set this to true to also read from stderr.
+     read-stderr: false
+   }
+
+   # You can have multiple match {} blocks in your config.
+   # They are applied, in order, against every line of input that
+   # comes from your exec and file instances in this program block.
+   match {
+     # match a pattern. This can be any regexp and can include %{foo}
+     # grok patterns
+     pattern: "some pattern to match"
+
+     # You can have multiple patterns here, any are valid for matching.
+     pattern: "another pattern to match"
+
+     # the default reaction is "%{@LINE}" which is the full line
+     # matched.  the reaction can be a special value of 'none' which
+     # means no reaction occurs, or it can be any string. The
+     # reaction is emitted to the shell if it is not none.
+     reaction: "%{@LINE}"
+
+     # the default shell is 'stdout' which means reactions are
+     # printed directly to standard output. Setting the shell to a
+     # command string will run that command and pipe reaction data to
+     # it.
+     #shell: stdout
+     shell: "/bin/sh"
+
+     # flush after every write to the shell. 
+     # The default is not to flush.
+     flush: true
+
+     # break-if-match means do not attempt any further matches on
+     # this line.  the default is false.
+     break-if-match: true
+   }
+ }
+ # -- End config
+
+=head1 PATTERN FILES
+
+Pattern files contain lists of names and patterns for loading into grok.
+
+Patterns are newline-delimited and have this syntax: 
+ I<patternname> I<expression>
+
+Any whitespace between the patternname and expression are ignored.
+
+=over
+
+=item patternname
+
+This is the name of your pattern which, when loaded, can be referenced in
+patterns as %{patternname}
+
+=item expression
+
+The expression here is, verbatim, available as a regular expression. You do not
+need to worry about how to escape things.
+
+=back
+
+=head2 PATTERN EXAMPLES
+
+ DIGITS \d+
+ HELLOWORLD \bhello world\b
+
+=head1 REGULAR EXPRESSIONS
+
+The expression engine underneath grok is PCRE. Any syntax in PCRE is valid in grok.
+
+=head1 REACTIONS
+
+Reactions can reference named patterns from the match. You can also access a few other special values, including:
+
+=over
+
+=item %{@LINE}
+
+The line matched.
+
+=item %{@MATCH}
+
+The substring matched
+
+=item %{@START}
+
+The starting position of the match from the beginning of the string.
+
+=item %{@END}
+
+The ending position of the match.
+
+=item %{@LENGTH}
+
+The length of the match
+
+=item %{@JSON}
+
+The full set of patterns captured, encoded as a json dictionary as a structure
+of { pattern: [ array of captures ] }. We use an array becuase you can use the
+same named pattern multiple times in a match.
+
+=item %{@JSON_COMPLEX}
+
+Similar to the above, but includes start and end position for every named
+pattern. That structure is:
+
+ { "grok": [ 
+    { "@LINE": { "start": ..., "end": ..., "value": ... } },
+    { "@MATCH": { "start": ..., "end": ..., "value": ... } },
+    { "patternname": { "start": startpos, "end": endpos, "value": "string" } },
+    { "patternname2": { "start": startpos, "end": endpos, "value": "string" } },
+    ...
+ ] }
+
+=back
+
+=head2 REACTION FILTERS
+
+Reaction filters allow you to mutate the captured data. The following filters are available:
+
+An example of using a filter in a reaction is like this:
+ reaction: "echo Matched: %{@MATCH|shellescape}"
+
+=over
+
+=item shellescape 
+
+Escapes all characters necessary to make the string safe in non-quoted a shell argument
+
+=item shelldqescape 
+
+Escapes characters necessary to be safe within doublequotes in a shell.
+
+=item jsonencode 
+
+Makes the string safe to represent in a json string (escapes according to json.org recommendations) 
+
+=back
+
+=head1 SEE ALSO
+
+L<pcre(3)>, L<pcresyntax(3)>,
+
+Project site: L<http://semicomplete.googlecode.com/wiki/Grok>
+
+Google Code: L<http://semicomplete.googlecode.com/>
+
+Issue/Bug Tracker: L<http://code.google.com/p/semicomplete/issues/list>
+
+=head1 CONTACT
+
+Please send questions to grok-users@googlegroups.com. File bugs and feature requests at the following URL:
+
+Issue/Bug Tracker: L<http://code.google.com/p/semicomplete/issues/list>
+
+=head1 HISTORY
+
+grok was originally in perl, then rewritten in C++ and Xpressive (regex), then
+rewritten in C and PCRE. 
+
+=head1 AUTHOR
+
+grok was written by Jordan Sissel.
+
+=cut
+ 

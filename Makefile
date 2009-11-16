@@ -167,6 +167,10 @@ conf.yy.c: conf.lex conf.tab.h
 .c.o:
 	$(CC) -c $(CFLAGS) $< -o $@
 
+%.1: %.pod
+	pod2man -c "" -r "" $< $@
+
+
 install: libgrok.so grok
 	install -m 755 -o root -g root grok $(PREFIX)/bin
 	install -m 644 -o root -g root libgrok.so $(PREFIX)/lib
