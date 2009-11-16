@@ -79,6 +79,16 @@
 + /test/runtest.sh
 + /test/stringhelper.test.c
 + /test/test.h
++ /samples
++ /samples/number-predicate2.grok
++ /samples/numberpredicate.grok
++ /samples/strpredicate.grok
++ /samples/test.grok
++ /samples/execrestart.grok
++ /samples/ifconfig.grok
++ /samples/ip-predicate.grok
++ /samples/errorlogcheck.grok
++ /samples/filter-example.grok
 - *
 - *.o
 - *.so
