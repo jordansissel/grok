@@ -1,4 +1,6 @@
 #include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
 #include "libc_helper.h"
 
 void safe_pipe(int pipefd[2]) {

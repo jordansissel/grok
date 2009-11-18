@@ -93,7 +93,7 @@ int grok_predicate_regexp_init(grok_t *grok, grok_capture *gct,
   if (ret < 0) {
     fprintf(stderr, "An error occured in grok_predicate_regexp_init.\n");
     fprintf(stderr, "Args: %.*s\n", args_len, args);
-    return;
+    return 1;
   }
 
   int start, end;
@@ -117,7 +117,7 @@ int grok_predicate_regexp_init(grok_t *grok, grok_capture *gct,
             gct->name);
     fprintf(stderr, "Error at pos %d: %s\n",
             grok->pcre_erroffset, grok->pcre_errptr);
-    return;
+    return 1;
   }
 
   grok_log(grok, LOG_PREDICATE, 
@@ -133,6 +133,8 @@ int grok_predicate_regexp_init(grok_t *grok, grok_capture *gct,
   gct->predicate_func_name_len = strlen("grok_predicate_regexp");
   grok_capture_set_extra(grok, gct, gprt);
   grok_capture_add(grok, gct);
+
+  return 0;
 }
 
 int grok_predicate_regexp(grok_t *grok, const grok_capture *gct,
@@ -213,12 +215,13 @@ int grok_predicate_numcompare_init(grok_t *grok, grok_capture *gct,
   gct->predicate_func_name_len = strlen("grok_predicate_numcompare");
   grok_capture_set_extra(grok, gct, gpnt);
   grok_capture_add(grok, gct);
+  return 0;
 }
 
 int grok_predicate_numcompare(grok_t *grok, const grok_capture *gct,
                               const char *subject, int start, int end) {
   grok_predicate_numcompare_t *gpnt;
-  int ret;
+  int ret = 0;
 
   gpnt = *(grok_predicate_numcompare_t **)(gct->extra.extra_val);
 
@@ -269,6 +272,8 @@ int grok_predicate_strcompare_init(grok_t *grok, grok_capture *gct,
   gct->predicate_func_name_len = strlen("grok_predicate_strcompare");
   grok_capture_set_extra(grok, gct, gpst);
   grok_capture_add(grok, gct);
+
+  return 0;
 }
 
 int grok_predicate_strcompare(grok_t *grok, const grok_capture *gct,

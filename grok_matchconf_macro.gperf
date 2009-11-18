@@ -1,5 +1,6 @@
 %{
 #define _GPERF_
+#include <string.h>
 #include "grok_matchconf_macro.h"
 %}
 %define hash-function-name _patname_macro_hash

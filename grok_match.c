@@ -46,7 +46,6 @@ int grok_match_walk_next(const grok_match_t *gm,
                          const char **substr, int *substrlen) {
   const grok_capture *gct;
   int start, end;
-  int ret;
   gct = grok_capture_walk_next(gm->grok);
   if (gct == NULL) {
     return 1;
@@ -67,5 +66,5 @@ int grok_match_walk_next(const grok_match_t *gm,
 }
 
 void grok_match_walk_end(const grok_match_t *gm) {
-  grok_capture_walk_end(gm->grok);
+  /* nothing, anymore */
 }

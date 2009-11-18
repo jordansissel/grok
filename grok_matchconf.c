@@ -1,4 +1,6 @@
 
+#define _GNU_SOURCE /* for asprintf */
+#include <stdio.h>
 #include <errno.h>
 #include <string.h>
 #include "grok.h"
@@ -65,7 +67,6 @@ void grok_matchconfig_close(grok_program_t *gprog, grok_matchconf_t  *gmc) {
 
 void grok_matchconfig_exec(grok_program_t *gprog, grok_input_t *ginput,
                            const char *text) {
-  grok_t *grok;
   grok_match_t gm;
   grok_matchconf_t *gmc;
   int i = 0;
@@ -392,9 +393,7 @@ char *grok_matchconfig_filter_reaction(const char *str, grok_match_t *gm) {
 
 void grok_matchconfig_start_shell(grok_program_t *gprog,
                                   grok_matchconf_t *gmc) {
-  grok_collection_t *gcol = gprog->gcol;
   int pipefd[2];
-  int pid;
 
   if (!strcmp(gmc->shell, "stdout")) {
     /* Special case: Use the stdout FILE */

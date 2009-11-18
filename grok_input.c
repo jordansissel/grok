@@ -50,7 +50,6 @@ void grok_program_add_input_process(grok_program_t *gprog,
   struct bufferevent *bev;
   grok_input_process_t *gipt = &(ginput->source.process);
   int childin[2], childout[2], childerr[2];
-  int pid;
   struct timeval now = { 0, 0 };
 
   safe_pipe(childin);
@@ -131,7 +130,6 @@ void _program_process_stdout_read(struct bufferevent *bev, void *data) {
   grok_input_t *ginput = (grok_input_t *)data;
   grok_program_t *gprog = ginput->gprog;
   char *line;
-  int ret;
 
   while ((line = evbuffer_readline(EVBUFFER_INPUT(bev))) != NULL) {
     grok_matchconfig_exec(gprog, ginput, line);
@@ -143,7 +141,6 @@ void _program_process_buferror(struct bufferevent *bev, short what,
                                void *data) {
   grok_input_t *ginput = (grok_input_t *)data;
   grok_input_process_t *gipt = &(ginput->source.process);
-  grok_program_t *gprog = ginput->gprog;
   grok_log(ginput, LOG_PROGRAMINPUT, "Buffer error %d on process %d: %s",
            what, gipt->pid, gipt->cmd);
 }
@@ -151,7 +148,6 @@ void _program_process_buferror(struct bufferevent *bev, short what,
 void _program_process_start(int fd, short what, void *data) {
   grok_input_t *ginput = (grok_input_t*)data;
   grok_input_process_t *gipt = &(ginput->source.process);
-  grok_program_t *gprog = ginput->gprog;
   int pid = 0;
 
   /* reset the 'instance match count' since we're starting the process */
@@ -183,7 +179,6 @@ void _program_file_read_buffer(struct bufferevent *bev, void *data) {
   grok_input_t *ginput = (grok_input_t *)data;
   grok_program_t *gprog = ginput->gprog;
   char *line;
-  int i;
 
   while ((line = evbuffer_readline(EVBUFFER_INPUT(bev))) != NULL) {
     grok_matchconfig_exec(gprog, ginput, line);
@@ -195,7 +190,6 @@ void _program_file_buferror(struct bufferevent *bev, short what,
                             void *data) {
   grok_input_t *ginput = (grok_input_t *)data;
   grok_input_file_t *gift = &(ginput->source.file);
-  grok_program_t *gprog = ginput->gprog;
   struct timeval nodelay = { 0, 0 };
   grok_log(ginput, LOG_PROGRAMINPUT, "Buffer error %d on file %d: %s",
            what, gift->fd, gift->filename);
@@ -276,7 +270,6 @@ void _program_file_repair_event(int fd, short what, void *data) {
 void _program_file_read_real(int fd, short what, void *data) {
   grok_input_t *ginput = (grok_input_t *)data;
   grok_input_file_t *gift = &(ginput->source.file);
-  grok_program_t *gprog = ginput->gprog;
 
   int write_ret;
   int bytes = 0;

@@ -51,11 +51,13 @@ int filter_shellescape(grok_match_t *gm, char **value, int *value_len,
                        int *value_size) {
   grok_log(gm->grok, LOG_REACTION, "filter executing");
   string_escape(value, value_len, value_size, "`^()&{}[]$*?!|;'\"\\", -1, ESCAPE_LIKE_C);
+  return 0;
 }
 
 int filter_shelldqescape(grok_match_t *gm, char **value, int *value_len,
                        int *value_size) {
   grok_log(gm->grok, LOG_REACTION, "filter executing");
   string_escape(value, value_len, value_size, "\\`$\"", -1, ESCAPE_LIKE_C);
+  return 0;
 }
 

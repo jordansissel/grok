@@ -26,8 +26,6 @@ void grok_capture_init(grok_t *grok, grok_capture *gct) {
 }
 
 void grok_capture_add(grok_t *grok, const grok_capture *gct) {
-  int ret;
-
   grok_log(grok, LOG_CAPTURE, 
            "Adding pattern '%s' as capture %d (pcrenum %d)",
            gct->name, gct->id, gct->pcre_capture_number);
@@ -42,7 +40,7 @@ void grok_capture_add(grok_t *grok, const grok_capture *gct) {
             sizeof(gct->pcre_capture_number), gct, sizeof(grok_capture));
 
 
-  int i, listsize, position;
+  int i, listsize;
   /* TCTREE doesn't permit dups, so let's make the structure a tree of arrays,
    * keyed on a string. */
   /* captures_by_name */
@@ -57,7 +55,7 @@ void grok_capture_add(grok_t *grok, const grok_capture *gct) {
   listsize = tclistnum(by_name_list);
   for (i = 0; i < listsize; i++) {
     grok_capture *list_gct;
-    list_gct = tclistval(by_name_list, i, &unused_size);
+    list_gct = (grok_capture *)tclistval(by_name_list, i, &unused_size);
     if (list_gct->id == gct->id) {
       tclistremove(by_name_list, i, &unused_size);
       break;
@@ -80,7 +78,7 @@ void grok_capture_add(grok_t *grok, const grok_capture *gct) {
   listsize = tclistnum(by_subname_list);
   for (i = 0; i < listsize; i++) {
     grok_capture *list_gct;
-    list_gct = tclistval(by_subname_list, i, &unused_size);
+    list_gct = (grok_capture *)tclistval(by_subname_list, i, &unused_size);
     if (list_gct->id == gct->id) {
       tclistremove(by_subname_list, i, &unused_size);
       break;
@@ -221,7 +219,6 @@ void grok_capture_walk_init(grok_t *grok) {
 }
 
 const grok_capture *grok_capture_walk_next(grok_t *grok) {
-  int ret;
   int id_size;
   int gct_size;
   int *id;
@@ -241,4 +238,5 @@ const grok_capture *grok_capture_walk_next(grok_t *grok) {
 
 int grok_capture_walk_end(grok_t *grok) {
   /* nothing, anymore */
+  return 0;
 }

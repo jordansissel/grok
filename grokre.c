@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <search.h>
 #include <db.h>
+#include <ctype.h>
 
 #include "grok.h"
 #include "predicates.h"
@@ -228,7 +229,6 @@ char *grok_pattern_expand(grok_t *grok) {
       offset = end;
     } else {
       int has_predicate = (capture_vector[g_cap_predicate * 2] >= 0);
-      int ret;
       const char *longname = NULL;
       const char *subname = NULL;
       grok_capture *gct = calloc(1, sizeof(grok_capture));;
