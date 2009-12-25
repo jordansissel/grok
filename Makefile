@@ -1,4 +1,5 @@
 PACKAGE=grok
+VERSION?=$(shell date "+%Y%m%d")
 PREFIX=/usr/local
 CFLAGS+=-O2
 #CFLAGS+=-g
@@ -57,13 +58,13 @@ all: grok libgrok.so
 package: build-package test-package 
 
 update-version:
-	sed -i -e "s/^Version: .*/Version: $$(date "+%Y%m%d")/" grok.spec
+	sed -i -e "s/^Version: .*/Version: $(VERSION)/" grok.spec
 
 build-package: update-version
-	PACKAGE=$(PACKAGE) sh package.sh
+	PACKAGE=$(PACKAGE) sh package.sh $(VERSION)
 
 test-package:
-	PKGVER=$(PACKAGE)-`date "+%Y%m%d"`; \
+	PKGVER=$(PACKAGE)-$(VERSION); \
 	tar -C /tmp -zxf $${PKGVER}.tar.gz; \
 	echo "Running tests..." && $(MAKE) -C /tmp/$${PKGVER}/test test
 

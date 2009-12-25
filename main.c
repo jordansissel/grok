@@ -14,7 +14,8 @@ static char *g_prog;
 
 void usage() {
   printf("Usage: %s [-d] <-f config_file>\n", g_prog);
-  printf("-d   Daemonize/background\n");
+  printf("       -d        (optional) Daemonize/background\n");
+  printf("       -f file   (required) Use specified config file\n");
 }
 
 int main(int argc, char **argv) {

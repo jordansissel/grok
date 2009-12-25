@@ -21,7 +21,7 @@ PACKAGE="$PACKAGE-$1"
 DIR="${TMP}/${PACKAGE}"
 rm -rf "$DIR"
 mkdir "$DIR"
-rsync -a --filter '. FILES' . "$DIR"
+rsync -rvt --filter '. FILES' . "$DIR"
 
 # gnu tar sucks, tar -C /tmp doesn't actually change directories for tar
 # creation?

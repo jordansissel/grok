@@ -89,3 +89,4 @@
 + test/runtest.sh
 + test/stringhelper.test.c
 + test/test.h
+- .*
