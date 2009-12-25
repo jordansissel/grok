@@ -124,7 +124,7 @@
 .\" ========================================================================
 .\"
 .IX Title "GROK 1"
-.TH GROK 1 "2009-11-15" "" ""
+.TH GROK 1 "2009-12-25" "" ""
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -133,7 +133,7 @@
 grok \- parse logs, handle events, and make your unstructured text structured.
 .SH "SYNOPSIS"
 .IX Header "SYNOPSIS"
-\&\fBgrok\fR \fIconfigfile\fR
+\&\fBgrok\fR [\fB\-d\fR] \fB\-f configfile\fR
 .SH "DESCRIPTION"
 .IX Header "DESCRIPTION"
 Grok is software that allows you to easily parse logs and other files.
@@ -142,6 +142,14 @@ With grok, you can turn unstructured log and event data into structured data.
 The grok program is a great tool for parsing log data and program output. You
 can match any number of complex patterns on any number of inputs (processes and
 files) and have custom reactions.
+.SH "OPTIONS"
+.IX Header "OPTIONS"
+.IP "\fB\-d\fR or \fB\-\-daemon\fR" 4
+.IX Item "-d or --daemon"
+Daemonize after parsing the config file. Implemented with \fIdaemon\fR\|(3). The default is to stay in foreground.
+.IP "\fB\-f configfile\fR" 4
+.IX Item "-f configfile"
+Specify a grok config file to use.
 .SH "CONFIGURATION"
 .IX Header "CONFIGURATION"
 You can call the config file anything you want. A full example config follows
@@ -310,6 +318,8 @@ Makes the string safe to represent in a json string (escapes according to json.o
 .SH "SEE ALSO"
 .IX Header "SEE ALSO"
 \&\fIpcre\fR\|(3), \fIpcresyntax\fR\|(3),
+.PP
+Sample grok configs are available in in the grok samples/ directory.
 .PP
 Project site: <http://semicomplete.googlecode.com/wiki/Grok>
 .PP
