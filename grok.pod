@@ -6,7 +6,7 @@ grok - parse logs, handle events, and make your unstructured text structured.
 
 =head1 SYNOPSIS
 
-B<grok> I<configfile>
+B<grok> [B<-d>] B<-f configfile>
 
 =head1 DESCRIPTION
 
@@ -16,6 +16,20 @@ With grok, you can turn unstructured log and event data into structured data.
 The grok program is a great tool for parsing log data and program output. You
 can match any number of complex patterns on any number of inputs (processes and
 files) and have custom reactions. 
+
+=head1 OPTIONS
+
+=over
+
+=item B<-d> or B<--daemon>
+
+Daemonize after parsing the config file. Implemented with daemon(3). The default is to stay in foreground.
+
+=item B<-f configfile>
+
+Specify a grok config file to use.
+
+=back
 
 =head1 CONFIGURATION
 
@@ -209,6 +223,8 @@ Makes the string safe to represent in a json string (escapes according to json.o
 =head1 SEE ALSO
 
 L<pcre(3)>, L<pcresyntax(3)>,
+
+Sample grok configs are available in in the grok samples/ directory.
 
 Project site: L<http://semicomplete.googlecode.com/wiki/Grok>
 
