@@ -101,7 +101,7 @@ grok: $(GROKOBJ) conf.tab.o conf.yy.o main.o grok_config.o
 
 libgrok.so: 
 libgrok.so: $(GROKOBJ) 
-	gcc $(LDFLAGS) -fPIC -shared -g $^ -o $@
+	gcc $(LDFLAGS) -fPIC -shared $^ -o $@
 
 # File dependencies
 # generated with: 
