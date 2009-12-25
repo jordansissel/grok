@@ -1,6 +1,10 @@
-????????
+20091225
   - Add function to get the list of loaded patterns.
-  - Ruby: new method Grok#patterns returns dictionary of known patterns.
+  - Ruby: new method Grok#patterns returns a Hash of known patterns.
+  - Added flags to grok: -d and --daemon to daemonize on startup (after config
+    parsing). Also added '-f configfile' for specifying the config file.
+  - Added manpage (grok.1, generated from grok.pod)
+
 20091110
   - match {} blocks can now have multiple 'pattern:' instances
   - Include samples/ directory of grok configs in release package.
