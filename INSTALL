@@ -25,16 +25,14 @@ Installing:
   make install
 
 Platforms:
-  This has been tested on Linux and FreeBSD. All tests pass in both Linux. It
-  should work elsewhere. I haven't run all tests on FreeBSD, yet.
+  This has been tested on Linux and FreeBSD. All tests pass in both Linux and
+  FreeBSD. It should work elsewhere.
   
 FreeBSD Notes:
-  You'll need to specify additional arguments to define where headers and
-  libraries are. There's an example in the Makefile under 'For FreeBSD' for
-  getting the right bdb library linked.
+  You can install this from ports in sysutils/grok
 
 CentOS Notes:
-  CentOS has an old version of pcre available, too old, in fact. Building a
+  CentOS 5.3 has an old version of pcre available, too old, in fact. Building a
   new rpm from a more recent Fedora pcre SRPM has worked well for me.
 
 Getting help:
