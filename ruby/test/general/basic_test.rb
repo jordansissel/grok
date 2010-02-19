@@ -45,4 +45,14 @@ class GrokBasicTests < Test::Unit::TestCase
     @grok.compile("%{test}")
     assert_equal("(?<0000>hello world)", @grok.expanded_pattern)
   end
+
+  def test_grok_load_patterns_from_file
+    require 'tempfile'
+    fd = Tempfile.new("grok_test_patterns.XXXXX")
+    fd.puts "TEST \\d+"
+    fd.close
+    @grok.add_patterns_from_file(fd.path)
+    @grok.compile("%{TEST}")
+    assert_equal("(?<0000>\\d+)", @grok.expanded_pattern)
+  end
 end
