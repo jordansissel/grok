@@ -1,9 +1,9 @@
 program {
   load-patterns: "patterns/base"
-  exec "ifconfig"
+  exec "seq 25"
 
   match {
-    pattern: "%{IP =~ /^192/}"
-    reaction: "Found: %{IP}"
+    pattern: "%{NUMBER > 20}"
+    reaction: "Found: %{NUMBER}"
   }
 }

@@ -2,14 +2,6 @@ require "Grok"
 require "pp"
 
 patterns = {}
-#File.open("../grok-patterns").each do |line|
-  #line.chomp!
-  #next if line =~ /^#/ or line =~ /^ *$/
-  ##name, pat = line.split(" ", 2)
-  #next if !name or !pat
-  ##x.add_pattern(name, pat)
-  #patterns[name] = pat
-#end
 
 matches = [
   #"%{SYSLOGBASE} Accepted %{NOTSPACE:method} for %{DATA:user} from %{IPORHOST:client} port %{INT:port}",
@@ -24,7 +16,7 @@ matches = [
 
 groks = matches.collect do |m|
   g = Grok.new
-  g.add_patterns_from_file("../grok-patterns")
+  g.add_patterns_from_file("../patterns/base")
   g.compile(m)
   g
 end
