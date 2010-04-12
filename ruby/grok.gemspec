@@ -11,7 +11,6 @@ Gem::Specification.new do |spec|
 
   spec.summary = "grok bindings for ruby"
   spec.description = "Grok ruby bindings - pattern match/extraction tool"
-  spec.add_dependency("eventmachine")
   spec.files = files
   spec.require_paths << "ext"
   spec.extensions = ["ext/extconf.rb"]
