@@ -6,7 +6,7 @@ Gem::Specification.new do |spec|
   end
 
   svnrev = %x{svn info}.split("\n").grep(/Revision:/).first.split(" ").last.to_i
-  spec.name = "grok"
+  spec.name = "jls-grok"
   spec.version = "0.1.#{svnrev}"
 
   spec.summary = "grok bindings for ruby"
