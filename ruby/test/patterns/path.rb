@@ -21,11 +21,11 @@ class PathPatternsTest < Test::Unit::TestCase
   end
 
   def test_windows_paths
-    paths = %w{C:\WINDOWS \\Foo\bar}
+    paths = %w{C:\WINDOWS \\\\Foo\bar \\\\1.2.3.4\C$ \\\\some\path\here.exe}
     paths << "C:\\Documents and Settings\\"
     paths.each do |path|
       match = @grok.match(path)
-      assert_not_equal(false, match)
+      assert_not_equal(false, match, "Expected #{path} to match, but it didn't.")
       assert_equal(path, match.captures["PATH"][0])
     end
   end

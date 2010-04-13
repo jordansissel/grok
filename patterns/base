@@ -31,7 +31,7 @@ UNIXPATH (?<![\w\\/])(?:/(?:[\w_%!$@:.,-]+|\\.)*)+
 LINUXTTY (?:/dev/pts/%{POSITIVENUM})
 BSDTTY (?:/dev/tty[pq][a-z0-9])
 TTY (?:%{BSDTTY}|%LINUXTTY)
-WINPATH (?:[A-z]+:)?(?:\\[^\\?*]*)+
+WINPATH (?:[A-z]+:|\\)(?:\\[^\\?*]*)+
 URIPROTO [A-z]+(\+[A-z+]+)?
 URIHOST %{IPORHOST}(?::%{POSITIVENUM})?
 # uripath comes loosely from RFC1738, but mostly from what Firefox
@@ -63,15 +63,14 @@ DATESTAMP %{INT}/%{INT}/%{INT}-%{INT}:%{INT}:%{INT}(\.%INT)?
 
 # Syslog Dates: Month Day HH:MM:SS
 SYSLOGDATE %{MONTH} +%{MONTHDAY} %{TIME}
-PROG (?:[A-z][\w-]+(?:\/[\w-]+)?)
-PID %{INT}
-SYSLOGPROG %{PROG}(?:\[%{PID}\])?
-SYSLOGFACILITY <%{INT:facility}.%{INT:priority}>
+PROG (?:[A-z][\w._-]+(?:\/[\w._-]+)?)
+SYSLOGPROG %{PROG}(?:\[%{POSITIVENUM:pid}\])?
+SYSLOGFACILITY <%{POSITIVENUM:facility}.%{POSITIVENUM:priority}>
 HTTPDATE %{MONTHDAY}/%{MONTH}/%{YEAR}:%{TIME} %{INT:ZONE}
 
 # Shortcuts
 QS %{QUOTEDSTRING}
 
 # Log formats
-SYSLOGBASE %{SYSLOGDATE} (?:%{SYSLOGFACILITY} )?%{IPORHOST:logsource} %{SYSLOGPROG}:
+SYSLOGBASE %{SYSLOGDATE:date} (?:%{SYSLOGFACILITY} )?%{IPORHOST:logsource} %{SYSLOGPROG}:
 COMBINEDAPACHELOG %{IPORHOST:clientip} %{USER:ident} %{USER:auth} \[%{HTTPDATE:timestamp}\] "%{WORD:verb} %{URIPATHPARAM:request} HTTP/%{NUMBER:httpversion}" %{NUMBER:response} (?:%{NUMBER:bytes}|-) "(?:%{URI:referrer}|-)" %{QS:agent}
