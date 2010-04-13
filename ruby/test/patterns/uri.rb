@@ -31,7 +31,8 @@ class URIPatternsTest < Test::Unit::TestCase
             "foo://user@somehost.com:12345/foo.bar/baz/fizz",
             "foo://user@somehost.com:12345/foo.bar/baz/fizz?test",
             "foo://user@somehost.com:12345/foo.bar/baz/fizz?test=1&sink&foo=4",
-            "http://www.google.com/search?hl=en&source=hp&q=hello+world+%5E%40%23%24&btnG=Google+Search"
+            "http://www.google.com/search?hl=en&source=hp&q=hello+world+%5E%40%23%24&btnG=Google+Search",
+            "http://www.freebsd.org/cgi/url.cgi?ports/sysutils/grok/pkg-descr",
            ]
             
     urls.each do |url|
