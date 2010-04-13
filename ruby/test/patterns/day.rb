@@ -1,8 +1,7 @@
-#require 'rubygems'
-require 'Grok'
+require 'grok'
 require 'test/unit'
 
-class MonthPatternsTest < Test::Unit::TestCase
+class DayPatternsTest < Test::Unit::TestCase
   def setup
     @grok = Grok.new
     path = "#{File.dirname(__FILE__)}/../../../patterns/base"
@@ -10,7 +9,7 @@ class MonthPatternsTest < Test::Unit::TestCase
     @grok.compile("%{DAY}")
   end
 
-  def test_urls
+  def test_days
     days = %w{Mon Monday Tue Tuesday Wed Wednesday Thu Thursday Fri Friday
                 Sat Saturday Sun Sunday}
     days.each do |day|

@@ -1,5 +1,4 @@
-#require 'rubygems'
-require 'Grok'
+require 'grok'
 require 'test/unit'
 
 class NumberPatternsTest < Test::Unit::TestCase

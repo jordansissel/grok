@@ -1,5 +1,4 @@
-#require 'rubygems'
-require 'Grok'
+require 'grok'
 require 'test/unit'
 
 class MonthPatternsTest < Test::Unit::TestCase
@@ -10,14 +9,14 @@ class MonthPatternsTest < Test::Unit::TestCase
     @grok.compile("%{MONTH}")
   end
 
-  def test_urls
+  def test_months
     months = ["Jan", "January", "Feb", "February", "Mar", "March", "Apr",
               "April", "May", "Jun", "June", "Jul", "July", "Aug", "August",
               "Sep", "September", "Oct", "October", "Nov", "November", "Dec",
               "December"]
     months.each do |month|
       match = @grok.match(month)
-      assert_not_equal(false, match)
+      assert_not_equal(false, match, "Expected #{month} to match")
       assert_equal(month, match.captures["MONTH"][0])
     end
   end
