@@ -1,7 +1,7 @@
 #ifndef _GROK_PATTERN_H_
 #define _GROK_PATTERN_H_
 
-#include <grok.h>
+#include "grok.h"
 #include <tcutil.h>
 
 TCLIST *grok_pattern_name_list(grok_t *grok);

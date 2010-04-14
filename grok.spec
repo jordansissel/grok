@@ -3,7 +3,7 @@
 
 Summary: A powerful pattern matching system for parsing and processing text
 Name: grok
-Version: 20091227.01
+Version: 20100414
 Release: 1
 Group: System Environment/Utilities
 License: BSD
@@ -44,7 +44,7 @@ make
 # for the ruby extention
 export LD_LIBRARY_PATH=$PWD
 cd ruby
-ruby extconf.rb
+ruby ext/extconf.rb
 make
 cd ..
 
