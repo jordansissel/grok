@@ -98,7 +98,7 @@ cleangen:
 # Binary creation
 grok: LDFLAGS+=-levent
 grok: $(GROKOBJ) conf.tab.o conf.yy.o main.o grok_config.o
-	gcc $(LDFLAGS) -g $^ -o $@
+	gcc $(LDFLAGS) $^ -o $@
 
 libgrok.so: 
 libgrok.so: $(GROKOBJ) 
