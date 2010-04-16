@@ -22,7 +22,7 @@ IP (?<![0-9])(?:(?:25[0-5]|2[0-4][0-9]|[0-1]?[0-9]{1,2})[.](?:25[0-5]|2[0-4][0-9
 HOSTNAME (?:[0-9A-z][0-9A-z-]{0,62})(?:\.(?:[0-9A-z][0-9A-z-]{0,62}))*\.?
 HOST %{HOSTNAME}
 IPORHOST (?:%{HOSTNAME}|%{IP})
-HOSTPORT (?:%{IPORHOST=~\.}:%{POSITIVENUM})
+HOSTPORT (?:%{IPORHOST=/~\./}:%{POSITIVENUM})
 
 # paths
 PATH (?:%{UNIXPATH}|%{WINPATH})
