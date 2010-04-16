@@ -32,7 +32,8 @@ class URIPatternsTest < Test::Unit::TestCase
             "foo://user@somehost.com:12345/foo.bar/baz/fizz?test=1&sink&foo=4",
             "http://www.google.com/search?hl=en&source=hp&q=hello+world+%5E%40%23%24&btnG=Google+Search",
             "http://www.freebsd.org/cgi/url.cgi?ports/sysutils/grok/pkg-descr",
-            "http://www.google.com/search?q=CAPTCHA+ssh&start=0&ie=utf-8&oe=utf-8&client=firefox-a&rls=org.mozilla:en-US:official"
+            "http://www.google.com/search?q=CAPTCHA+ssh&start=0&ie=utf-8&oe=utf-8&client=firefox-a&rls=org.mozilla:en-US:official",
+            "svn+ssh://somehost:12345/testing",
            ]
             
     urls.each do |url|
