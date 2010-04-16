@@ -23,44 +23,24 @@ static void grok_study_capture_map(grok_t *grok);
 static void grok_capture_add_predicate(grok_t *grok, int capture_id,
                                        const char *predicate, int predicate_len);
 
-void grok_free(grok_t *grok) {
-  if (grok->re != NULL)
+void grok_free_clone(const grok_t *grok) {
+  if (grok->re != NULL) {
     pcre_free(grok->re);
+  }
 
-  if (grok->full_pattern != NULL)
+  if (grok->full_pattern != NULL) {
     free(grok->full_pattern);
+  }
 
-  if (grok->pcre_capture_vector != NULL)
+  if (grok->pcre_capture_vector != NULL) {
     free(grok->pcre_capture_vector);
-
-  if (grok->patterns != NULL)
-    tctreedel(grok->patterns);
+  }
 
   if (grok->captures_by_name != NULL) {
-    /* remove tclists */
-    //tctreeiterinit(grok->captures_by_name);
-    //const char *key;
-    //int unused_size;
-    //int key_size;
-    //while (key = tctreeiternext(grok->captures_by_name, &key_size)) {
-      //const TCLIST *by_name_list = tctreeget(grok->captures_by_name,
-                                             //key, key_size, &unused_size);
-      //tclistdel((TCLIST *)by_name_list);
-    //}
     tctreedel(grok->captures_by_name);
   }
 
   if (grok->captures_by_subname != NULL) {
-    /* remove tclists */
-    //tctreeiterinit(grok->captures_by_subname);
-    //const char *key;
-    //int unused_size;
-    //int key_size;
-    //while (key = tctreeiternext(grok->captures_by_subname, &key_size)) {
-      //////const TCLIST *by_subname_list = tctreeget(grok->captures_by_subname,
-                                                //key, key_size, &unused_size);
-      //tclistdel((TCLIST *)by_subname_list);
-    //}
     tctreedel(grok->captures_by_subname);
   }
 
@@ -71,7 +51,12 @@ void grok_free(grok_t *grok) {
   if (grok->captures_by_id != NULL) {
     tctreedel(grok->captures_by_id);
   }
+}
 
+void grok_free(grok_t *grok) {
+  grok_free_clone(grok);
+  if (grok->patterns != NULL)
+    tctreedel(grok->patterns);
 }
 
 int grok_compile(grok_t *grok, const char *pattern) {
@@ -82,10 +67,10 @@ int grok_compilen(grok_t *grok, const char *pattern, int length) {
   grok_log(grok, LOG_COMPILE, "Compiling '%.*s'", length, pattern);
 
   /* clear the old tctree data */
-  tctreeclear(grok->captures_by_id);
-  tctreeclear(grok->captures_by_capture_number);
   tctreeclear(grok->captures_by_name);
   tctreeclear(grok->captures_by_subname);
+  tctreeclear(grok->captures_by_capture_number);
+  tctreeclear(grok->captures_by_id);
 
   grok->pattern = pattern;
   grok->pattern_len = length;
@@ -100,8 +85,7 @@ int grok_compilen(grok_t *grok, const char *pattern, int length) {
   }
 
   grok->re = pcre_compile(grok->full_pattern, 0, 
-                          &grok->pcre_errptr, &grok->pcre_erroffset,
-                          NULL);
+                          &grok->pcre_errptr, &grok->pcre_erroffset, NULL);
 
   if (grok->re == NULL) {
     grok->errstr = (char *)grok->pcre_errptr;
@@ -123,15 +107,15 @@ const char * const grok_error(grok_t *grok) {
   return grok->errstr;
 }
 
-int grok_exec(grok_t *grok, const char *text, grok_match_t *gm) {
+int grok_exec(const grok_t *grok, const char *text, grok_match_t *gm) {
   return grok_execn(grok, text, strlen(text), gm);
 }
 
-int grok_execn(grok_t *grok, const char *text, int textlen, grok_match_t *gm) {
+int grok_execn(const grok_t *grok, const char *text, int textlen, grok_match_t *gm) {
   int ret;
   pcre_extra pce;
   pce.flags = PCRE_EXTRA_CALLOUT_DATA;
-  pce.callout_data = grok;
+  pce.callout_data = (void *)grok;
 
   if (grok->re == NULL) {
     grok_log(grok, LOG_EXEC, "Error: pcre re is null, meaning you haven't called grok_compile yet");
@@ -158,7 +142,7 @@ int grok_execn(grok_t *grok, const char *text, int textlen, grok_match_t *gm) {
         fprintf(stderr, "pcre badmagic\n");
         break;
     }
-    grok->pcre_errno = ret;
+    //grok->pcre_errno = ret;
     return GROK_ERROR_PCRE_ERROR;
   }
 
@@ -174,7 +158,7 @@ int grok_execn(grok_t *grok, const char *text, int textlen, grok_match_t *gm) {
 }
 
 /* XXX: This method is pretty long; split it up? */
-char *grok_pattern_expand(grok_t *grok) {
+static char *grok_pattern_expand(grok_t *grok) {
   int capture_id = 0; /* Starting capture_id, doesn't really matter what this is */
   int offset = 0; /* string offset; how far we've expanded so far */
   int *capture_vector = NULL;

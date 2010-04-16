@@ -91,8 +91,9 @@ int grok_predicate_regexp_init(grok_t *grok, grok_capture *gct,
   ret = pcre_exec(regexp_predicate_op, NULL, args, args_len, 0, 0,
                   capture_vector, REGEXP_OVEC_SIZE * 3);
   if (ret < 0) {
-    fprintf(stderr, "An error occured in grok_predicate_regexp_init.\n");
+    fprintf(stderr, "An error occurred in grok_predicate_regexp_init.\n");
     fprintf(stderr, "Args: %.*s\n", args_len, args);
+    fprintf(stderr, "pcre_exec:: %d\n", ret);
     return 1;
   }
 
@@ -113,7 +114,7 @@ int grok_predicate_regexp_init(grok_t *grok, grok_capture *gct,
   gprt->negative_match = (args[capture_vector[2]] == '!');
 
   if (ret != 0) {
-    fprintf(stderr, "An error occured while compiling the predicate for %s:\n",
+    fprintf(stderr, "An error occurred while compiling the predicate for %s:\n",
             gct->name);
     fprintf(stderr, "Error at pos %d: %s\n",
             grok->pcre_erroffset, grok->pcre_errptr);

@@ -9,7 +9,6 @@
 
 extern char *optarg; /* from unistd.h, getopt */
 extern FILE *yyin; /* from conf.lex (flex provides this) */
-
 static char *g_prog;
 
 void usage() {
@@ -27,10 +26,12 @@ int main(int argc, char **argv) {
   int want_daemon = 0;
   char *config_file = NULL;
 
+  enum { opt_daemon, opt_config, opt_help, opt_discover } possible_options;
+
   struct option options[] = {
-    { "daemon", no_argument, NULL, 'd' },
-    { "config", required_argument, NULL, 'f' },
-    { "help", no_argument, NULL, 'h' },
+    { "daemon", no_argument, NULL, opt_daemon },
+    { "config", required_argument, NULL, opt_config },
+    { "help", no_argument, NULL, opt_help },
     { 0, 0, 0, 0 }
   };
 
@@ -38,13 +39,13 @@ int main(int argc, char **argv) {
 
   while ((opt = getopt_long_only(argc, argv, "hdf:", options, &optind)) != -1) {
     switch (opt) {
-      case 'd':
+      case opt_daemon:
         want_daemon = 1;
         break;
-      case 'f':
+      case opt_config:
         config_file = strdup(optarg);
         break;
-      case 'h':
+      case opt_help:
         usage();
         return 0;
       default:

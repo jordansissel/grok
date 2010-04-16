@@ -12,6 +12,10 @@ void string_escape(char **strp, int *strp_len, int *strp_alloc_size,
                    const char *chars, int chars_len, int options);
 void string_unescape(char **strp, int *strp_len, int *strp_size);
 
+int string_count(const char *src, const char *charlist);
+int string_ncount(const char *src, size_t srclen,
+                  const char *charlist, size_t listlen);
+
 /* libc doesn't often have strndup, so let's make our own */
 char *string_ndup(const char *src, size_t size);
 

@@ -97,5 +97,6 @@ extern int g_cap_predicate;
 
 #include "grok_match.h"
 #include "grokre.h"
+#include "grok_discover.h"
 
 #endif /* ifndef _GROK_H_ */

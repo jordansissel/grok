@@ -11,6 +11,13 @@ int g_cap_pattern = 0;
 int g_cap_subname = 0;
 int g_cap_predicate = 0;
 
+grok_t *grok_new() {
+  grok_t *grok;
+  grok = malloc(sizeof(grok_t));
+  grok_init(grok);
+  return grok;
+}
+
 void grok_init(grok_t *grok) {
   //int ret;
   /* set global pcre_callout for libpcre */
@@ -64,7 +71,7 @@ void grok_init(grok_t *grok) {
   }
 }
 
-void grok_clone(grok_t *dst, grok_t *src) {
+void grok_clone(grok_t *dst, const grok_t *src) {
   grok_init(dst);
   dst->patterns = src->patterns;
   dst->logmask = src->logmask;

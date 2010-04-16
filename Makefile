@@ -1,8 +1,9 @@
 PACKAGE=grok
 VERSION?=$(shell date "+%Y%m%d")
 PREFIX=/usr/local
-CFLAGS+=-O2
-#CFLAGS+=-g
+#CFLAGS+=-O2
+CFLAGS+=-g
+LDFLAGS+=-g
 
 PLATFORM=$(shell (uname -o || uname -s) 2> /dev/null)
 FLEX?=flex
@@ -24,7 +25,7 @@ LDFLAGS+=-ldl
 endif
 
 # You probably don't need to make changes below
-CFLAGS+=-pipe -fPIC
+CFLAGS+=-pipe -fPIC -I.
 LDFLAGS+=-lpcre -levent -rdynamic -ltokyocabinet
 
 # Sane includes
@@ -48,11 +49,11 @@ CLEANBIN=main grokre grok conftest grok_program
 GROKOBJ=grok.o grokre.o grok_capture.o grok_pattern.o stringhelper.o \
         predicates.o grok_capture_xdr.o grok_match.o grok_logging.o \
         grok_program.o grok_input.o grok_matchconf.o libc_helper.o \
-        grok_matchconf_macro.o filters.o
+        grok_matchconf_macro.o filters.o grok_discover.o
 GROKPROGOBJ=grok_input.o grok_program.o grok_matchconf.o $(GROKOBJ)
 
 .PHONY: all
-all: grok libgrok.so
+all: grok discover_grok libgrok.so
 
 .PHONY: package build-package test-package update-version
 package: build-package test-package 
@@ -98,6 +99,9 @@ cleangen:
 # Binary creation
 grok: LDFLAGS+=-levent
 grok: $(GROKOBJ) conf.tab.o conf.yy.o main.o grok_config.o
+	gcc $(LDFLAGS) $^ -o $@
+
+discover_grok: $(GROKOBJ) discover_main.c
 	gcc $(LDFLAGS) $^ -o $@
 
 libgrok.so: 

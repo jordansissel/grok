@@ -21,6 +21,8 @@
 + grok_capture.x
 + grok_config.c
 + grok_config.h
++ grok_discover.c
++ grok_discover.h
 + grok_input.c
 + grok_input.h
 + grok_logging.c

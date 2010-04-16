@@ -238,3 +238,23 @@ char *string_ndup(const char *src, size_t size) {
 
   return dup;
 }
+
+int string_count(const char *src, const char *charlist) {
+  string_ncount(src, strlen(src), charlist, strlen(charlist));
+}
+
+int string_ncount(const char *src, size_t srclen,
+                  const char *charlist, size_t listlen) {
+  int i = 0, j = 0;
+  int count = 0;
+
+  for (i = 0; i < srclen; i++) {
+    for (j = 0; j < listlen; j++) {
+      if (src[i] == charlist[j]) {
+        count++;
+        break; /* no point in trying to match more of charlist this round */
+      }
+    }
+  }
+  return count;
+}

@@ -4,7 +4,7 @@
 #include "grok_capture_xdr.h"
 
 typedef struct grok_match {
-  grok_t *grok;
+  const grok_t *grok;
   const char *subject;
   int start;
   int end;
