@@ -1,11 +1,5 @@
 PACKAGE=grok
-MAJOR=$(shell sh version.sh --major)
-VERSION=$(shell sh version.sh)
-
 PREFIX=/usr/local
-
-#CFLAGS+=-g
-#LDFLAGS+=-g
 
 PLATFORM=$(shell (uname -o || uname -s) 2> /dev/null)
 FLEX?=flex
@@ -26,7 +20,16 @@ ifeq ($(PLATFORM), GNU/Linux)
 LDFLAGS+=-ldl
 endif
 
+# #############################################
 # You probably don't need to make changes below
+
+BASE=.
+MAJOR=$(shell sh $(BASE)/version.sh --major)
+VERSION=$(shell sh $(BASE)/version.sh)
+
+#CFLAGS+=-g
+#LDFLAGS+=-g
+
 CFLAGS+=-pipe -fPIC -I. -O2
 LDFLAGS+=-lpcre -levent -rdynamic -ltokyocabinet
 
@@ -214,10 +217,10 @@ grok.spec: grok.spec.in
 	sed -i -e "s/^Version: .*/Version: $(VERSION)/" grok.spec.in
 
 grok_version.h:
-	sh version.sh --header > $@
+	sh $(BASE)/version.sh --header > $@
 
 VERSION:
-	sh version.sh --shell > $@
+	sh $(BASE)/version.sh --shell > $@
 
 
 

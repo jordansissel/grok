@@ -1,3 +1,12 @@
+1.20100416.*
+  - Add pattern discovery through grok_discover (C) and Grok#discover (Ruby)
+    Idea for this feature documented here:
+    http://www.semicomplete.com/blog/geekery/grok-pattern-autodiscovery.html
+  - The ruby gem is now called 'jls-grok' since someone already had the 'grok'
+    gem name on gemcutter.
+  - Fix some pattern errors found in the test suite.
+  - New version numbering to match my other tools.
+
 20091227.01
   - Add function to get the list of loaded patterns.
   - Ruby: new method Grok#patterns returns a Hash of known patterns.

@@ -26,27 +26,29 @@ int main(int argc, char **argv) {
   int want_daemon = 0;
   char *config_file = NULL;
 
-  enum { opt_daemon, opt_config, opt_help, opt_discover } possible_options;
-
   struct option options[] = {
-    { "daemon", no_argument, NULL, opt_daemon },
-    { "config", required_argument, NULL, opt_config },
-    { "help", no_argument, NULL, opt_help },
+    { "daemon", no_argument, NULL, 'd' },
+    { "config", required_argument, NULL, 'f' },
+    { "help", no_argument, NULL, 'h' },
+    { "version", no_argument, NULL, 'v' },
     { 0, 0, 0, 0 }
   };
 
   g_prog = argv[0];
 
-  while ((opt = getopt_long_only(argc, argv, "hdf:", options, &optind)) != -1) {
+  while ((opt = getopt_long_only(argc, argv, "vhdf:", options, &optind)) != -1) {
     switch (opt) {
-      case opt_daemon:
+      case 'd':
         want_daemon = 1;
         break;
-      case opt_config:
+      case 'f':
         config_file = strdup(optarg);
         break;
-      case opt_help:
+      case 'h':
         usage();
+        return 0;
+      case 'v':
+        printf("grok %s\n", GROK_VERSION);
         return 0;
       default:
         usage();

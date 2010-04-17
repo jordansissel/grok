@@ -1,3 +1,4 @@
+BASE=..
 include ../Makefile
 
 # Search these paths for dependency targets
