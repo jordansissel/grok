@@ -3,6 +3,9 @@
 + INSTALL
 + LICENSE
 + Makefile
++ VERSION
++ version.sh
++ platform.sh
 + conf.lex
 + conf.tab.c
 + conf.tab.h

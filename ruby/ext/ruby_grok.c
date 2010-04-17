@@ -6,14 +6,16 @@
 VALUE cGrok; /* Grok class object */
 
 extern VALUE cGrokMatch;
+extern VALUE cGrokDiscover;
 extern void Init_GrokMatch();
+extern void Init_GrokDiscover();
 
 static VALUE rGrok_initialize(VALUE self) {
   /* empty */
   return Qnil;
 }
 
-static void rGrok_free(void *p) {
+void rGrok_free(void *p) {
   grok_t *grok = (grok_t *)p;
 
   /* we strdup our pattern from ruby and rb_str2cstr */
@@ -31,6 +33,13 @@ VALUE rGrok_new(VALUE klass) {
   grok_init(grok);
   //grok->logmask = ~0;
   rgrok = Data_Wrap_Struct(klass, 0, rGrok_free, grok);
+  rb_obj_call_init(rgrok, 0, 0);
+  return rgrok;
+}
+
+VALUE rGrok_new_from_grok(grok_t *grok) {
+  VALUE rgrok;
+  rgrok = Data_Wrap_Struct(cGrok, 0, rGrok_free, grok);
   rb_obj_call_init(rgrok, 0, 0);
   return rgrok;
 }
@@ -187,4 +196,5 @@ void Init_Grok() {
   rb_define_method(cGrok, "patterns", rGrok_patterns, 0);
 
   Init_GrokMatch();
+  Init_GrokDiscover();
 }

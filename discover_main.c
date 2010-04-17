@@ -31,12 +31,14 @@ int main(int argc, char **argv) {
   grok_t grok;
   grok_init(&grok);
 
+  int pattern_count = 0;
   while ((opt = getopt_long_only(argc, argv, "hp:v", options, &optind)) != -1) {
     switch (opt) {
       case 'h':
         usage();
         return 0;
       case 'p':
+        pattern_count++;
         grok_patterns_import_from_file(&grok, optarg);
         break;
       case 'v':
@@ -46,6 +48,12 @@ int main(int argc, char **argv) {
         usage();
         return 1;
     }
+  }
+
+  if (pattern_count == 0) {
+    fprintf(stderr, "%s: No patterns loaded.\n", prog);
+    fprintf(stderr, "You want to specify at least one patterns file to load\n");
+    return 1;
   }
 
   argc -= optind;
@@ -59,15 +67,14 @@ int main(int argc, char **argv) {
 
   char buf[4096];
   grok_discover_t *gdt;
-  grok_t grok_copy;
   gdt = grok_discover_new(&grok);
+  char *discovery;
+  int unused_length;
   while (fgets(buf, 4096, fp) != NULL) {
-    grok_init(&grok_copy);
     strrchr(buf, '\n')[0] = '\0';
-    grok_discover(gdt, &grok_copy, buf);
-    printf("%s\n", grok_copy.pattern);
-    grok_free_clone(&grok_copy);
+    grok_discover(gdt, buf, &discovery, &unused_length);
+    printf("%s\n", discovery);
+    free(discovery);
   }
   grok_discover_free(gdt);
-  return 0;
-}
+  return 0; }

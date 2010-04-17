@@ -390,3 +390,7 @@ static void grok_study_capture_map(grok_t *grok) {
     grok_capture_add(grok, gct);
   }
 }
+
+const char *grok_version() {
+  return GROK_VERSION;
+}

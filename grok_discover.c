@@ -2,13 +2,17 @@
 #include "stringhelper.h"
 
 static int dgrok_init = 0;
-static grok_t global_discovery_req_grok;
+static grok_t global_discovery_req1_grok;
+static grok_t global_discovery_req2_grok;
 static int complexity(const grok_t *grok);
 
 static void grok_discover_global_init() {
   dgrok_init = 1;
-  grok_init(&global_discovery_req_grok);
-  grok_compile(&global_discovery_req_grok, ".\\b.");
+  grok_init(&global_discovery_req1_grok);
+  grok_compile(&global_discovery_req1_grok, ".\\b.");
+
+  grok_init(&global_discovery_req2_grok);
+  grok_compile(&global_discovery_req2_grok, "%\\{[^}]+\\}");
 }
 
 
@@ -83,14 +87,14 @@ void grok_discover_free(grok_discover_t *gdt) {
   free(gdt);
 }
 
-void grok_discover(const grok_discover_t *gdt, grok_t *dest_grok,
-                   const char *input) {
+void grok_discover(const grok_discover_t *gdt, /*grok_t *dest_grok, */
+                   const char *input, char **discovery, int *discovery_len) {
   /* Find known patterns in the input string */
   char *pattern = strdup(input);
   int pattern_len = strlen(pattern);
   int pattern_size = pattern_len + 1;
   int replacements = -1;
-  int offset = 0;
+  //int offset = 0;
   int match = 0;
   char *cursor = pattern;
   int rounds = 0;
@@ -104,21 +108,30 @@ void grok_discover(const grok_discover_t *gdt, grok_t *dest_grok,
     grok_match_t gm;
     grok_match_t best_match;
     int max_matchlen = 0;
-    char *patoff = pattern + offset;
+    //char *patoff = pattern + offset;
     while ((key = tctreeiternext(gdt->complexity_tree, &key_len)) != NULL) {
       const int *complexity = (const int *)key;
       int val_len;
       const grok_t *g = tctreeget(gdt->complexity_tree, key, sizeof(int), &val_len);
-      match = grok_exec(g, patoff, &gm);
+      match = grok_exec(g, pattern, &gm);
       if (match == GROK_OK) {
         int still_ok;
         int matchlen = gm.end - gm.start;
-        still_ok = grok_execn(&global_discovery_req_grok, patoff + gm.start,
+        still_ok = grok_execn(&global_discovery_req1_grok, pattern + gm.start,
                               matchlen, NULL);
         if (still_ok != GROK_OK) {
           grok_log(gdt, LOG_DISCOVER, 
                    "%d: Matched %s, but match (%.*s) not complex enough.",
-                   rounds, g->pattern, matchlen, patoff + gm.start);
+                   rounds, g->pattern, matchlen, pattern + gm.start);
+          continue;
+        }
+
+        /* We don't want to replace existing patterns like %{FOO} */
+        if (grok_execn(&global_discovery_req2_grok, pattern + gm.start, matchlen,
+                       NULL) == GROK_OK) {
+          grok_log(gdt, LOG_DISCOVER, 
+                   "%d: Matched %s, but match (%.*s) includes %{...} patterns.",
+                   rounds, g->pattern, matchlen, pattern + gm.start);
           continue;
         }
 
@@ -138,18 +151,20 @@ void grok_discover(const grok_discover_t *gdt, grok_t *dest_grok,
     if (max_matchlen > 0) {
       grok_log(gdt, LOG_DISCOVER, "%d: Matched %s on '%.*s'",
                rounds, best_match.grok->pattern,
-               best_match.end - best_match.start, patoff + best_match.start);
+               best_match.end - best_match.start, pattern + best_match.start);
       replacements = 1;
       substr_replace(&pattern, &pattern_len, &pattern_size,
-                     offset + best_match.start,
-                     offset + best_match.end, best_match.grok->pattern, -1);
-      offset += best_match.start + strlen(best_match.grok->pattern);
+                     /*offset +*/ best_match.start,
+                     /*offset +*/ best_match.end, best_match.grok->pattern, -1);
+      //offset += best_match.start + strlen(best_match.grok->pattern);
       grok_log(gdt, LOG_DISCOVER, "%d: Pattern: %.*s",
                rounds, pattern_len, pattern);
     }
   } /* while (replacements != 0) */
 
-  grok_compilen(dest_grok, pattern, pattern_len);
+  //grok_compilen(dest_grok, pattern, pattern_len);
+  *discovery = pattern;
+  *discovery_len = pattern_len;
 }
 
 /* Compute the relative complexity of a pattern */
