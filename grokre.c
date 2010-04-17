@@ -251,7 +251,7 @@ static char *grok_pattern_expand(grok_t *grok) {
         grok_capture_add_predicate(grok, capture_id, full_pattern + pstart,
                                    pend - pstart);
         substr_replace(&full_pattern, &full_len, &full_size,
-                       end, -1, "(?C1)", 5);
+                       end, 0, "(?C1)", 5);
       }
 
       /* Replace %{FOO} with (?<>). '5' is strlen("(?<>)") */
@@ -262,7 +262,7 @@ static char *grok_pattern_expand(grok_t *grok) {
 
       /* Insert the capture id into (?<FOO>) */
       substr_replace(&full_pattern, &full_len, &full_size,
-                     start + 3, -1,
+                     start + 3, 0,
                      capture_id_str, CAPTURE_ID_LEN);
       grok_log(grok, LOG_REGEXPAND, "% 20s: %.*s", "add capture id",
                full_len, full_pattern);
@@ -271,7 +271,7 @@ static char *grok_pattern_expand(grok_t *grok) {
       /* Insert the pattern into (?<FOO>pattern) */
       /* 3 = '(?<', 4 = strlen(capture_id_str), 1 = ")" */
       substr_replace(&full_pattern, &full_len, &full_size, 
-                     start + 3 + CAPTURE_ID_LEN + 1, -1, 
+                     start + 3 + CAPTURE_ID_LEN + 1, 0, 
                      pattern_regex, regexp_len);
       grok_log(grok, LOG_REGEXPAND, ":: Inserted: %.*s", regexp_len,
                pattern_regex);

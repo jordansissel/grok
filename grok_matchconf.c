@@ -316,15 +316,18 @@ char *grok_matchconfig_filter_reaction(const char *str, grok_match_t *gm) {
             /* Insert the { at the beginning */
             /* And Replace trailing ", " with " }" */
             if (patmacro->code == VALUE_JSON_SIMPLE) {
-              substr_replace(&value, &value_len, &value_size, 0, 0,
-                             "{ ", 2); 
+              substr_replace(&value, &value_len, &value_size, 0, 0, "{ ", 2); 
               substr_replace(&value, &value_len, &value_size,
                              value_len - 2, value_len, " }", 2);
+                             /* TODO(sissel): This could be:
+                              * -3, -1, " }", 2); */
             } else { /* VALUE_JSON_COMPLEX */
               substr_replace(&value, &value_len, &value_size, 0, 0, 
                              "{ \"grok\": [ ", 12);
               substr_replace(&value, &value_len, &value_size,
                              value_len - 2, value_len, " ] }", 4);
+                             /* TODO(sissel): This could be:
+                              * -3, -1, " ] }", 4); */
             }
 
             char *old = value;

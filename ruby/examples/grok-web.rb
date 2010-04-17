@@ -9,10 +9,14 @@ require 'sinatra'
 require 'grok'
 
 get '/' do
+  redirect "/demo/grok-discover/index"
+end
+
+get "/demo/grok-discover/index" do
   haml :index
 end
 
-post '/grok' do
+post "/demo/grok-discover/grok" do
   grok = Grok.new
   grok.add_patterns_from_file("/usr/local/share/grok/patterns/base")
   @results = []
@@ -32,7 +36,7 @@ post '/grok' do
   haml :grok
 end
 
-get "/style.css" do
+get "/demo/grok-discover/style.css" do
   sass :style
 end
 
@@ -54,7 +58,7 @@ h1
 %html
   %head
     %title Grok Web
-    %link{:rel => "stylesheet", :href => "/style.css"}
+    %link{:rel => "stylesheet", :href => "/demo/grok-discover/style.css"}
   %body
     =yield
 
@@ -63,7 +67,11 @@ h1
   %h1 Grok Web
 #content
   Paste some log data below. I'll do my best to have grok generate a pattern for you.
-  %form{:action => "/grok", :method => "post"}
+
+  %p
+    This is running off of my cable modem for now, so if it's sluggish, that's
+    why. Be gentle.
+  %form{:action => "/demo/grok-discover/grok", :method => "post"}
     %textarea{:name => "data", :rows => 10, :cols => 80}
     %br
     %input{:type => "submit", :value=>"submit"}
@@ -72,7 +80,7 @@ h1
 #header
   %h1 Grok Results
   %h3
-    %a{:href => "/"} Try more?
+    %a{:href => "/demo/grok-discover/index"} Try more?
 #content
   %dl
   - @results.each do |result|

@@ -15,7 +15,6 @@ static void grok_discover_global_init() {
   grok_compile(&global_discovery_req2_grok, "%\\{[^}]+\\}");
 }
 
-
 grok_discover_t *grok_discover_new(grok_t *source_grok) {
   grok_discover_t *gdt = malloc(sizeof(grok_discover_t));
   grok_discover_init(gdt, source_grok);
@@ -90,6 +89,7 @@ void grok_discover_free(grok_discover_t *gdt) {
 void grok_discover(const grok_discover_t *gdt, /*grok_t *dest_grok, */
                    const char *input, char **discovery, int *discovery_len) {
   /* Find known patterns in the input string */
+  ((grok_discover_t *)gdt)->logmask = LOG_DISCOVER;
   char *pattern = strdup(input);
   int pattern_len = strlen(pattern);
   int pattern_size = pattern_len + 1;
@@ -154,15 +154,27 @@ void grok_discover(const grok_discover_t *gdt, /*grok_t *dest_grok, */
                best_match.end - best_match.start, pattern + best_match.start);
       replacements = 1;
       substr_replace(&pattern, &pattern_len, &pattern_size,
-                     /*offset +*/ best_match.start,
-                     /*offset +*/ best_match.end, best_match.grok->pattern, -1);
-      //offset += best_match.start + strlen(best_match.grok->pattern);
-      grok_log(gdt, LOG_DISCOVER, "%d: Pattern: %.*s",
-               rounds, pattern_len, pattern);
+                     best_match.start, best_match.end,
+                     best_match.grok->pattern, best_match.grok->pattern_len);
+      substr_replace(&pattern, &pattern_len, &pattern_size,
+                     best_match.start, best_match.start, "\\E", 2);
+      substr_replace(&pattern, &pattern_len, &pattern_size,
+                     best_match.start + best_match.grok->pattern_len + 2, -1,
+                     "\\Q", 2);
+      //usleep(1000000);
+      /* Wrap the new regexp in \E .. \Q, for ending and beginning (respectively)
+       * 'quote literal' as PCRE and Perl support. This prevents literal characters
+       * in the input strings from being interpreted */
+      //grok_log(gdt, LOG_DISCOVER, "%d: Pattern1: %.*s", rounds, pattern_len, pattern);
+      grok_log(gdt, LOG_DISCOVER, "%d: Pattern3: %.*s", rounds, pattern_len, pattern);
     }
   } /* while (replacements != 0) */
 
-  //grok_compilen(dest_grok, pattern, pattern_len);
+  /* Add \Q and \E at beginning and end */
+  substr_replace(&pattern, &pattern_len, &pattern_size,
+                 0, 0, "\\Q", 2);
+  substr_replace(&pattern, &pattern_len, &pattern_size,
+                 pattern_len, pattern_len, "\\E", 2);
   *discovery = pattern;
   *discovery_len = pattern_len;
 }

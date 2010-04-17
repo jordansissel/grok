@@ -35,6 +35,24 @@ void test_substr_replace_alloc_and_insert_from_null_dest(void) {
   free(dest);
 }
 
+void test_substr_replace_multiple(void) {
+  char *dest = NULL;
+  int dlen = 0, dalloc = 0;
+
+  //int x = 0;
+  //printf("%d: %.*s\n", x++, dlen, dest);
+  substr_replace(&dest, &dlen, &dalloc, 0, 0, "hello", -1);
+  substr_replace(&dest, &dlen, &dalloc, dlen, 0, " ", -1);
+  substr_replace(&dest, &dlen, &dalloc, dlen, 0, "world", -1);
+
+  const char *expect = "hello world";
+  CU_ASSERT(!strcmp(dest, expect));
+  CU_ASSERT(dlen == strlen(expect));
+  CU_ASSERT(dalloc > dlen);
+
+  free(dest);
+}
+
 void test_substr_replace_remove(void) {
   char *source = strdup("hello world");
   int len = strlen(source);

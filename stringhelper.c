@@ -43,7 +43,11 @@ void substr_replace(char **strp,
     replace_len = strlen(replace);
   if (*strp_len < 0)
     *strp_len = strlen(*strp);
-  if (end < 0)
+
+  if (start < 0) /* allow negative offset from end of string */
+    start = *strp_len + start;
+
+  if (end <= 0) /* allow negative offset from end of string */
     end = start;
 
   total_len = *strp_len + replace_len - (end - start);
