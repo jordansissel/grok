@@ -2,7 +2,10 @@ Gem::Specification.new do |spec|
   files = ["sample.rb", "INSTALL"]
   dirs = %w{ext test lib}
   dirs.each do |dir|
-    files += Dir["#{dir}/**/*"]
+    Dir["#{dir}/**/*"].each do |file|
+      next if file =~ /^\./
+      files << file
+    end
   end
 
   svnrev = %x{svn info}.split("\n").grep(/Revision:/).first.split(" ").last.to_i
