@@ -15,14 +15,18 @@ grok.add_patterns_from_file("/usr/local/share/grok/patterns/base")
 # Using the patterns we know, try to build a grok pattern that best matches 
 # a string we give. Let's try Time.now.to_s, which has this format;
 # => Fri Apr 16 19:15:27 -0700 2010
-pattern = grok.discover("Time is #{Time.now}")
+input = "Time is #{Time.now}"
+pattern = grok.discover(input)
 
+puts "Input: #{input}"
 puts "Pattern: #{pattern}"
 grok.compile(pattern)
 
 # Sleep to change time.
+puts "Sleeping so time changes and we can test against another input."
 sleep(2)
 match = grok.match("Time is #{Time.now.to_s}")
+puts "Resulting capture:"
 pp match.captures
 
 # When run, the output should look something like this:
