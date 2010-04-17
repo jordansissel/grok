@@ -83,6 +83,9 @@ install: libgrok.$(LIBSUFFIX) grok discogrok $(GROKHEADER)
 	for header in $(GROKHEADER); do \
 		install -m 644 -o root -g root $$header $(PREFIX)/include; \
 	done 
+	install -d -o root -g root $(PREFIX)/share/grok
+	install -d -o root -g root $(PREFIX)/share/grok/patterns
+	install -o root -g root patterns/base $(PREFIX)/share/grok/patterns/
 
 uninstall:
 	rm -f $(PREFIX)/bin/grok
@@ -91,6 +94,7 @@ uninstall:
 	for header in $(GROKHEADER); do \
 		rm -f $(PREFIX)/include/$$header; \
 	done 
+	rm -f $(PREFIX)/share/grok/patterns/*
 
 pre-create-package:
 	rm -f VERSION grok_version.h
@@ -149,6 +153,7 @@ libgrok.$(VERLIBSUFFIX): libgrok.$(LIBSUFFIX);
 # File dependencies
 # generated with: 
 # for i in *.c; do grep '#include "' $i | fex '"2' | xargs | sed -e "s/^/$i: /"; done    
+grok.h: grok_version.h
 grok.c: grok.h
 grok_capture.c: grok.h grok_capture.h grok_capture_xdr.h
 grok_capture_xdr.c: grok_capture.h
@@ -214,7 +219,7 @@ conf.yy.c: conf.lex conf.tab.h
 	pod2man -c "" -r "" $< $@
 
 grok.spec: grok.spec.in
-	sed -i -e "s/^Version: .*/Version: $(VERSION)/" grok.spec.in
+	sed -e "s/^Version: .*/Version: $(VERSION)/" grok.spec.in > grok.spec
 
 grok_version.h:
 	sh $(BASE)/version.sh --header > $@
