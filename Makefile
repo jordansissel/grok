@@ -23,7 +23,7 @@ endif
 # #############################################
 # You probably don't need to make changes below
 
-BASE=.
+BASE?=.
 MAJOR=$(shell sh $(BASE)/version.sh --major)
 VERSION=$(shell sh $(BASE)/version.sh)
 
@@ -33,10 +33,10 @@ VERSION=$(shell sh $(BASE)/version.sh)
 CFLAGS+=-pipe -fPIC -I. -O2
 LDFLAGS+=-lpcre -levent -rdynamic -ltokyocabinet
 
-LIBSUFFIX=$(shell sh platform.sh libsuffix)
-VERLIBSUFFIX=$(shell sh platform.sh libsuffix $(MAJOR))
-DYNLIBFLAG=$(shell sh platform.sh dynlibflag)
-LIBNAMEFLAG=$(shell sh platform.sh libnameflag $(MAJOR) $(INSTALLLIB))
+LIBSUFFIX=$(shell sh $(BASE)/platform.sh libsuffix)
+VERLIBSUFFIX=$(shell sh $(BASE)/platform.sh libsuffix $(MAJOR))
+DYNLIBFLAG=$(shell sh $(BASE)/platform.sh dynlibflag)
+LIBNAMEFLAG=$(shell sh $(BASE)/platform.sh libnameflag $(MAJOR) $(INSTALLLIB))
 
 # Sane includes
 CFLAGS+=-I/usr/local/include

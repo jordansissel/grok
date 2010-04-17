@@ -1,6 +1,5 @@
 BASE=..
 include ../Makefile
-
 # Search these paths for dependency targets
 VPATH=..:.
 
@@ -32,8 +31,11 @@ test-ruby:
 	$(CC) $(CFLAGS) -c _$< -o $@;
 	rm _$<
 
+$(GROKOBJ):
+	make -C $(BASE) $@
+	mv $(BASE)/$@ .
 
-stringhelper.test: stringhelper.o
+stringhelper.test: ../stringhelper.o
 grok_pattern.test: $(GROKOBJ)
 grok_capture.test: $(GROKOBJ)
 grok_simple.test: $(GROKOBJ)
@@ -42,3 +44,4 @@ predicates.test: $(GROKOBJ)
 
 %.test: %.test.o 
 	$(CC) $(LDFLAGS) $(CFLAGS) $(^:cleanobj=) -o $@
+
