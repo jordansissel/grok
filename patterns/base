@@ -51,19 +51,24 @@ MONTHDAY \b(?:(?:3[01]|[0-2]?[0-9]))\b
 DAY (?:Mon(?:day)?|Tue(?:sday)?|Wed(?:nesday)?|Thu(?:rsday)?|Fri(?:day)?|Sat(?:urday)?|Sun(?:day)?)
 
 # Years?
-YEAR [0-9]{2,}
+YEAR [0-9]+
 # Time: HH:MM:SS
 #TIME \d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?
 # I'm still on the fence about using grok to perform the time match,
 # since it's probably slower.
 # TIME %{POSINT<24}:%{POSINT<60}(?::%{POSINT<60}(?:\.%{POSINT})?)?
-TIME (?!<[0-9])(?:2[0123]|[01][0-9]):(?:[0-5][0-9])(?::(?:[0-5][0-9])(?:[.,][0-9]+)?)?(?![0-9])
+HOUR (?:2[0123]|[01][0-9])
+MINUTE (?:[0-5][0-9])
+SECOND (?:(?:[0-5][0-9])(?:[.,][0-9]+)?)
+TIME (?!<[0-9])%{HOUR}:%{MINUTE}(?::%{SECOND})(?![0-9])
 # datestamp is YYYY/MM/DD-HH:MM:SS.UUUU (or something like it)
 DATE_US %{MONTHNUM}[/-]%{MONTHDAY}[/-]%{YEAR}
 DATE_EU %{YEAR}[/-]%{MONTHNUM}[/-]%{MONTHDAY}
 DATE %{DATE_US}|%{DATE_EU}
 DATESTAMP %{DATE}[- ]%{TIME}
-TZ ([PMCE][SD]T)
+TZ (?:[PMCE][SD]T)
+DATESTAMP_RFC822 %{DAY} %{MONTH} %{MONTHDAY} %{YEAR} %{TIME} %{TZ}
+DATESTAMP_OTHER %{DAY} %{MONTH} %{MONTHDAY} %{TIME} %{TZ} %{YEAR}
 
 # Syslog Dates: Month Day HH:MM:SS
 SYSLOGDATE %{MONTH} +%{MONTHDAY} %{TIME}
