@@ -50,6 +50,7 @@ void grok_discover_init(grok_discover_t *gdt, grok_t *source_grok) {
     grok_t *g = grok_new();
     grok_clone(g, source_grok);
     char *gpattern;
+    //if (asprintf(&gpattern, "%%{%.*s =~ /.\\b./}", namelen, name) == -1) {
     if (asprintf(&gpattern, "%%{%.*s}", namelen, name) == -1) {
       perror("asprintf failed");
       abort();
@@ -66,9 +67,14 @@ void grok_discover_init(grok_discover_t *gdt, grok_t *source_grok) {
       continue;
     }
 
+    *key *= 1000; /* Inflate so we can insert duplicates */
+
     grok_log(gdt, LOG_DISCOVER, "Including pattern: (complexity: %d) %.*s",
              *(int *)key, namelen, name);
-    tctreeput(gdt->complexity_tree, key, sizeof(int), g, sizeof(grok_t));
+    while (!tctreeputkeep(gdt->complexity_tree, key, sizeof(int), 
+                          g, sizeof(grok_t))) {
+      *key--;
+    }
     //grok_free_clone(g);
     //free(key);
   }
@@ -89,12 +95,11 @@ void grok_discover_free(grok_discover_t *gdt) {
 void grok_discover(const grok_discover_t *gdt, /*grok_t *dest_grok, */
                    const char *input, char **discovery, int *discovery_len) {
   /* Find known patterns in the input string */
-  ((grok_discover_t *)gdt)->logmask = LOG_DISCOVER;
   char *pattern = strdup(input);
   int pattern_len = strlen(pattern);
   int pattern_size = pattern_len + 1;
   int replacements = -1;
-  //int offset = 0;
+  int offset = 0;
   int match = 0;
   char *cursor = pattern;
   int rounds = 0;
@@ -108,12 +113,14 @@ void grok_discover(const grok_discover_t *gdt, /*grok_t *dest_grok, */
     grok_match_t gm;
     grok_match_t best_match;
     int max_matchlen = 0;
-    //char *patoff = pattern + offset;
+    char *patoff = pattern + offset;
     while ((key = tctreeiternext(gdt->complexity_tree, &key_len)) != NULL) {
       const int *complexity = (const int *)key;
       int val_len;
       const grok_t *g = tctreeget(gdt->complexity_tree, key, sizeof(int), &val_len);
       match = grok_exec(g, pattern, &gm);
+      grok_log(gdt, LOG_DISCOVER, "Test %s against %.*s\n",
+               (match == GROK_OK ? "succeeded" : "failed"), g->pattern_len, g->pattern);
       if (match == GROK_OK) {
         int still_ok;
         int matchlen = gm.end - gm.start;
