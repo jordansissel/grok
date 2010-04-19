@@ -22,10 +22,10 @@ post "/demo/grok-discover/grok" do
   @results = []
   params[:data].split("\n").each do |line|
     pattern = grok.discover(line)
-    puts :OK
-    puts pattern
     grok.compile(pattern)
     match = grok.match(line)
+    puts "Got input: #{line}"
+    puts " => pattern: (#{match != false}) #{pattern}"
     @results << { 
         :input => line,
         :pattern => grok.pattern.gsub(/\\Q|\\E/, ""),
@@ -45,8 +45,11 @@ __END__
 h1
   color: red
 .original
-.pattern
 .regexp
+  display: block
+  border: 1px solid grey
+  padding: 1em
+
 .results
   width: 80%
   margin-left: auto
@@ -69,6 +72,10 @@ h1
   Paste some log data below. I'll do my best to have grok generate a pattern for you.
 
   %p
+    Learn more about grok here:
+    %a{:href => "http://code.google.com/p/semicomplete/wiki/Grok"} Grok
+
+  %p
     This is running off of my cable modem for now, so if it's sluggish, that's
     why. Be gentle.
   %form{:action => "/demo/grok-discover/grok", :method => "post"}
@@ -82,23 +89,43 @@ h1
   %h3
     %a{:href => "/demo/grok-discover/index"} Try more?
 #content
-  %dl
-  - @results.each do |result|
-    %dt.original= result[:input]
-    %dd
-      %p 
-        %b Pattern:
-        %code.pattern= result[:pattern]
-      %p
-        %b Regexp: 
-        %code.regexp= result[:full_pattern]
-      %p
-        %b Capture Results
-        %table.results
-          %tr
-            %th Name
-            %th Value
-          - result[:match].each do |key,val|
+  %p
+    Below is grok's analysis of the data you provided. Each line is analyzed
+    separately. It uses grok's standard library of known patterns to give you a
+    pattern that grok can use to match more logs like the lines you provided.
+  %p
+    The results may not be perfect, but it gives you a head start on coming up with
+    log patterns for 
+    %a{:href => "http://code.google.com/p/semicomplete/wiki/Grok"} grok 
+    and 
+    %a{:href => "http://code.google.com/p/logstash/"} logstash
+  %ol
+    - @results.each do |result|
+      %li
+        %p.original
+          %b Original:
+          %br= result[:input]
+        %p 
+          %b Pattern:
+          %br
+          %span.pattern= result[:pattern]
+        %p
+          %b 
+            Generated Regular Expression
+          %small
+            %i You could have written this by hand, be glad you didn't have to.
+          %code.regexp= result[:full_pattern].gsub("<", "&lt;")
+        %p
+          If you wanted to test this, you can paste the above expression into
+          pcretest(1) and it should match your input. 
+        %p
+          %b Capture Results
+          %table.results
             %tr
-              %td= key
-              %td= val
+              %th Name
+              %th Value
+            - result[:match].each do |key,val|
+              - val.each do |v|
+                %tr
+                  %td= key
+                  %td= v
