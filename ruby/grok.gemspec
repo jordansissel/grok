@@ -4,6 +4,7 @@ Gem::Specification.new do |spec|
   dirs.each do |dir|
     Dir["#{dir}/**/*"].each do |file|
       next if file =~ /^\./
+      next if file =~ /\.so$/
       files << file
     end
   end
