@@ -21,7 +21,6 @@ typedef struct grok_pattern {
 } grok_pattern_t;
 
 struct grok {
-  //DB *patterns;
   TCTREE *patterns;
   
   /* These are initialized when grok_compile is called */
@@ -34,7 +33,6 @@ struct grok {
   int pcre_num_captures;
   
   /* Data storage for named-capture (grok capture) information */
-  //TCTREE *captures_by_id;
   TCTREE *captures_by_id;
   TCTREE *captures_by_name;
   TCTREE *captures_by_subname;

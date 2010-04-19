@@ -93,7 +93,6 @@ static int grok_pcre_callout(pcre_callout_block *pcb) {
     start = pcb->offset_vector[ pcb->capture_last * 2 ];
     end = pcb->offset_vector[ pcb->capture_last * 2 + 1];
 
-    /* XXX: call the predicate func */
     if (lib != NULL && lib[0] == '\0') {
       lib = NULL;
     }
@@ -118,4 +117,4 @@ static int grok_pcre_callout(pcre_callout_block *pcb) {
   }
 
   return 0;
-}
+} /* int grok_pcre_callout */
