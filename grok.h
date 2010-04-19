@@ -9,6 +9,10 @@
 #include <db.h>
 #include <string.h>
 
+/*
+ * @defgroup grok_t grok_t
+ */
+
 typedef struct grok grok_t;
 
 typedef struct grok_pattern {
@@ -96,8 +100,80 @@ extern int g_cap_predicate;
 #endif
 
 #include "grok_match.h"
-#include "grokre.h"
 #include "grok_discover.h"
 #include "grok_version.h"
+
+/**
+ * @mainpage
+ *
+ * Test foo bar
+ *
+ * baz fizz
+ *
+ * grok_new()
+ */
+
+/**
+ * Create a new grok_t instance.
+ *
+ * The new grok_t instance is initialized with grok_init() already,
+ * so you do not need to call it.
+ *
+ * You should use grok_free() on the result when you want to free it.
+ *
+ * @ingroup grok_t
+ * @return pointer to new grok_t instance or NULL on failure.
+ */
+grok_t *grok_new();
+
+/**
+ * Initialize a grok_t instance. This is useful if you have
+ * a grok_t as a stack variable rather than heap.
+ *
+ * @ingroup grok_t
+ */
+void grok_init(grok_t *grok);
+
+/**
+ * Shallow clone of a grok instance.
+ * This is useful for creating new grok_t instances with the same
+ * loaded patterns. It also copies the log settings.
+ *
+ * @param dst pointer to destination grok_t you want to clone into.
+ * @param src pointer to source grok_t you can to clone from.
+ */
+void grok_clone(grok_t *dst, const grok_t *src);
+
+/**
+ * Free a grok instance. This will clean up any memory allocated by the 
+ * grok_t instance during it's life. Finally, this method will free()
+ * the grok_t pointer you gave.
+ *
+ * Do not use this method on grok_t instances you created with
+ * grok_clone.
+ *
+ * @param grok the grok_t instance you want to free.
+ */
+void grok_free(grok_t *grok);
+
+/**
+ */
+void grok_free_clone(const grok_t *grok);
+
+/**
+ * Get the library's version number
+ *
+ * @return string representing grok's version.
+ */
+const char *grok_version();
+
+int grok_compile(grok_t *grok, const char *pattern);
+int grok_compilen(grok_t *grok, const char *pattern, int length);
+int grok_exec(const grok_t *grok, const char *text, grok_match_t *gm);
+int grok_execn(const grok_t *grok, const char *text, int textlen, grok_match_t *gm);
+
+int grok_match_get_named_substring(const grok_match_t *gm, const char *name,
+                                   const char **substr, int *len);
+
 
 #endif /* ifndef _GROK_H_ */
