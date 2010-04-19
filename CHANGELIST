@@ -1,3 +1,11 @@
+1.20100419.*
+  - Fix tests
+  - Add a ruby example for pattern discovery
+  - Add grok-web example (runs grok in ruby via sinatra to show pattern discovery)
+  - Add more time formats (US, EU, ISO8601)
+  - Fix bug that prevented multiple patterns with the same complexity from being
+    used in discovery.
+
 1.20100416.*
   - Add pattern discovery through grok_discover (C) and Grok#discover (Ruby)
     Idea for this feature documented here:
