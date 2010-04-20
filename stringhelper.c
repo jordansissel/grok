@@ -148,7 +148,7 @@ void string_escape(char **strp, int *strp_len, int *strp_alloc_size,
       j += replstr_len;
     }
   }
-}
+} /* void string_escape */
 
 void string_escape_like_c(char c, char *replstr, int *replstr_len, int *op) {
   char *r = NULL;
@@ -175,15 +175,15 @@ void string_escape_like_c(char c, char *replstr, int *replstr_len, int *op) {
     }
   }
   memcpy(replstr, r, *replstr_len);
-}
+} /* void string_escape_like_c */
 
-void string_escape_hex(char c, char *replstr, int *replstr_len, int *op) { 
+void string_escape_hex(char c, char *replstr, int *replstr_len, int *op) {
   *op = ESCAPE_REPLACE;
   *replstr_len = sprintf(replstr, "\\x%x", (unsigned char) c);
   //printf("Unicode: %.*s\n", *replstr_len, replstr);
-}
+} /* void string_escape_hex */
 
-void string_escape_unicode(char c, char *replstr, int *replstr_len, int *op) { 
+void string_escape_unicode(char c, char *replstr, int *replstr_len, int *op) {
   /* XXX: We should check the options to see if we should only convert
    * nonprintables */
   if (!isprint(c)) {
@@ -191,7 +191,7 @@ void string_escape_unicode(char c, char *replstr, int *replstr_len, int *op) {
     *replstr_len = sprintf(replstr, "\\u00%02x",(unsigned char) c);
     //printf("Unicode: %.*s\n", *replstr_len, replstr);
   }
-}
+} /* string_escape_unicode */
 
 void string_unescape(char **strp, int *strp_len, int *strp_size) {
   int i;
@@ -223,7 +223,7 @@ void string_unescape(char **strp, int *strp_len, int *strp_size) {
       }
     }
   }
-}
+} /* void string_unescape */
 
 /* Some platforms don't have strndup, so let's provide our own */
 char *string_ndup(const char *src, size_t size) {
@@ -241,11 +241,11 @@ char *string_ndup(const char *src, size_t size) {
   }
 
   return dup;
-}
+} /* char *string_ndup */
 
 int string_count(const char *src, const char *charlist) {
   string_ncount(src, strlen(src), charlist, strlen(charlist));
-}
+} /* int string_count */
 
 int string_ncount(const char *src, size_t srclen,
                   const char *charlist, size_t listlen) {
@@ -261,4 +261,4 @@ int string_ncount(const char *src, size_t srclen,
     }
   }
   return count;
-}
+} /* int string_ncount */

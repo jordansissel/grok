@@ -1,3 +1,6 @@
+/**
+ * @file grok_discover.h
+ */
 #ifndef _GROK_DISCOVER_H_
 #define _GROK_DISCOVER_H_
 #include <grok.h>

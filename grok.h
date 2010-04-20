@@ -1,3 +1,6 @@
+/**
+ * @file grok.h
+ */
 #ifndef _GROK_H_
 #define _GROK_H_
 
@@ -10,7 +13,7 @@
 #include <string.h>
 
 /*
- * @defgroup grok_t grok_t
+ * A regular expression super library.
  */
 
 typedef struct grok grok_t;
@@ -21,14 +24,22 @@ typedef struct grok_pattern {
 } grok_pattern_t;
 
 struct grok {
-  TCTREE *patterns;
-  
-  /* These are initialized when grok_compile is called */
-  pcre *re;
+  /** The original pattern given to grok_compile() */
   const char *pattern;
+
+  /** length of the pattern string */
   int pattern_len;
+
+  /** The full expanded pattern generated from grok_compile() */
   char *full_pattern;
+
+  /** full_pattern string length */
   int full_pattern_len;
+
+  /** tokyocabinet TCTREE of patterns */
+  TCTREE *patterns;
+
+  pcre *re;
   int *pcre_capture_vector;
   int pcre_num_captures;
   
@@ -39,7 +50,7 @@ struct grok {
   TCTREE *captures_by_capture_number;
   int max_capture_num;
   
-  /* PCRE pattern compilation errors */
+  /** PCRE pattern compilation errors */
   const char *pcre_errptr;
   int pcre_erroffset;
   int pcre_errno;
@@ -75,13 +86,32 @@ extern int g_cap_predicate;
   ")?" \
   "}"
 
+/** Safe return code */
 #define GROK_OK 0
+
+/** File not accessible. This occurs when you try to load patterns from
+ * a file and grok cannot read it. */
 #define GROK_ERROR_FILE_NOT_ACCESSIBLE 1
+
+/** Pattern not found is given if you try to search for a pattern
+ * by name that is not known, that is, it wasn't added with
+ * grok_pattern_add or grok_patterns_import* */
 #define GROK_ERROR_PATTERN_NOT_FOUND 2
+
 #define GROK_ERROR_UNEXPECTED_READ_SIZE 3
+
+/** grok_compile failed. */
 #define GROK_ERROR_COMPILE_FAILED 4
+
+/** grok_exec called on a grok_t instance that was not initialized first.
+ * Make sure you grok_init(). */
 #define GROK_ERROR_UNINITIALIZED 5
+
+/** A PCRE-related error occurred. Check the grok_t pcre_errno and other
+ * pcre_err* members */
 #define GROK_ERROR_PCRE_ERROR 6
+
+/** grok_exec did not match your string */
 #define GROK_ERROR_NOMATCH 7
 
 #define CAPTURE_ID_LEN 4
@@ -165,9 +195,39 @@ void grok_free_clone(const grok_t *grok);
  */
 const char *grok_version();
 
+/**
+ * Compile a pattern. PCRE syntax is supported.
+ *
+ * Grok extends this syntax with %{PATTERN} syntax
+ * This allows you to use predefined patterns anywhere in your
+ * regular expression.
+ *
+ * @param grok the grok_t instance to compile into.
+ * @param pattern the string regexp pattern to compile.
+ */
 int grok_compile(grok_t *grok, const char *pattern);
+
+/**
+ * Compile a pattern with known length.
+ *
+ * @param pattern the string pattern to compile
+ * @param length the length of the pattern
+ * @see grok_compile()
+ */
 int grok_compilen(grok_t *grok, const char *pattern, int length);
+
+/**
+ * Execute against a string input.
+ *
+ * @param text the text to match.
+ * @param gm The grok_match_t to store match result in.  If NULL, no storing is attempted.
+ * @returns GROK_OK if match successful, GROK_ERROR_NOMATCH if no match.
+ */
 int grok_exec(const grok_t *grok, const char *text, grok_match_t *gm);
+
+/**
+ * @see grok_exec
+ * */
 int grok_execn(const grok_t *grok, const char *text, int textlen, grok_match_t *gm);
 
 int grok_match_get_named_substring(const grok_match_t *gm, const char *name,
