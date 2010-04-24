@@ -22,7 +22,6 @@ const grok_capture *grok_capture_walk_next(grok_t *grok);
 int grok_capture_set_extra(grok_t *grok, grok_capture *gct, void *extra);
 void _grok_capture_encode(grok_capture *gct, char **data_ret, int *size_ret);
 void _grok_capture_decode(grok_capture *gct, char *data, int size);
-int _grok_capture_get_db(grok_t *grok, DB *db, DBT *key, grok_capture *gct);
 
 
 #endif /* _GROK_CAPTURE_INTERNAL_H_ */

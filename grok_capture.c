@@ -2,7 +2,6 @@
 #include "grok_capture.h"
 #include "grok_capture_xdr.h"
 
-#include <db.h>
 #include <assert.h>
 
 #define CAPTURE_NUMBER_NOT_SET (-1)

@@ -9,7 +9,6 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <db.h>
 #include <string.h>
 
 /*

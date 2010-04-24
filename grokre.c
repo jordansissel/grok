@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <search.h>
-#include <db.h>
 #include <ctype.h>
 
 #include "grok.h"
