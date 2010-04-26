@@ -44,6 +44,10 @@ VALUE rGrok_new_from_grok(grok_t *grok) {
   return rgrok;
 }
 
+/*
+ * Compiles an expression.
+ *
+ */
 VALUE rGrok_compile(VALUE self, VALUE pattern) {
   grok_t *grok;
   char *c_pattern = NULL;
@@ -53,7 +57,9 @@ VALUE rGrok_compile(VALUE self, VALUE pattern) {
   Data_Get_Struct(self, grok_t, grok);
 
   /* Need strdup here in case 'pattern' object is deleted later in 
-   * the ruby code */
+   * the ruby code 
+   * TODO(sissel): Really, just mark that we are using this string
+   * rather than strduping. */
   str = rb_str2cstr(pattern, &len);
   c_pattern = malloc(len);
   memcpy(c_pattern, str, len);
