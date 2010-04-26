@@ -18,6 +18,9 @@ Dependencies:
     Test suite dependencies:
       CUnit        >= 2.1
 
+    Ubuntu dependency list (for ease):
+      apt-get install bison ctags flex gperf libevent-dev libpcre3-dev libtokyocabinet-dev
+
 Building:
   make grok    (or 'gmake grok' if your make is not gnu make)
 
