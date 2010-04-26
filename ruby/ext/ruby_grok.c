@@ -5,6 +5,39 @@
 
 VALUE cGrok; /* Grok class object */
 
+/*
+ * Document-class: Grok
+ * Grok ruby bindings.
+ *
+ * For an intro to grok, see:
+ * See http://code.google.com/p/semicomplete/wiki/Grok
+ * and http://code.google.com/p/semicomplete/wiki/GrokRuby
+ *
+ * General usage of grok is as follows:
+ *
+ *    grok = Grok.new
+ *    grok.add_patterns_from_file("/path/to/patterns")
+ *    grok.add_pattern("WORD", "\b\w+\b")
+ *    grok.compile("%{WORD} world!")
+ *    m = grok.match("Hello world!")
+ *    if m
+ *      puts m.captures["WORD"]
+ *     else
+ *       puts "No match."
+ *    fi
+ *
+ * Grok autodiscovery:
+ *    grok = Grok.new
+ *    grok.add_patterns_from_file("/path/to/patterns")
+ *
+ *    # Assuming you loaded the default pattern set
+ *    grok.discover("2009-04-18")   
+ *    #=> "\\Q\\E%{DATE_EU}\\Q\\E"
+ *    grok.discover("Visit http://www.google.com/")   
+ *    #=> "\\QVisit \\E%{URI}\\Q\\E"
+ *
+ */
+
 extern VALUE cGrokMatch;
 extern VALUE cGrokDiscover;
 extern void Init_GrokMatch();
@@ -46,6 +79,9 @@ VALUE rGrok_new_from_grok(grok_t *grok) {
 
 /*
  * Compiles an expression.
+ *
+ * call-seq:
+ *  grok.compile(pattern) 
  *
  */
 VALUE rGrok_compile(VALUE self, VALUE pattern) {
