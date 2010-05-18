@@ -73,7 +73,7 @@ DATESTAMP_OTHER %{DAY} %{MONTH} %{MONTHDAY} %{TIME} %{TZ} %{YEAR}
 
 # Syslog Dates: Month Day HH:MM:SS
 SYSLOGDATE %{MONTH} +%{MONTHDAY} %{TIME}
-PROG (?:[A-Za-z][\w._-]+(?:\/[\w._-]+)?)
+PROG (?:[\w._/-]+)
 SYSLOGPROG %{PROG:progname}(?:\[%{POSINT:pid}\])?
 SYSLOGHOST %{IPORHOST}
 SYSLOGFACILITY <%{POSINT:facility}.%{POSINT:priority}>
