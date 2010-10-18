@@ -1,10 +1,15 @@
 PACKAGE=grok
-PREFIX=/usr/local
 
 PLATFORM=$(shell (uname -o || uname -s) 2> /dev/null)
 FLEX?=flex
 
 FORCE_FLEX?=0
+
+ifeq ($(PLATFORM), FreeBSD)
+PREFIX?=/usr/local
+else
+PREFIX?=/usr
+endif
 
 # On FreeBSD, you may want to set GPERF=/usr/local/bin/gperf since
 # the base system gperf is too old.
@@ -77,24 +82,27 @@ package:
 	$(MAKE) $(MAKEFLAGS) test-package 
 
 install: libgrok.$(LIBSUFFIX) grok discogrok $(GROKHEADER)
-	install -m 755 -o root -g root grok $(PREFIX)/bin
-	install -m 755 -o root -g root discogrok $(PREFIX)/bin
-	install -m 644 -o root -g root libgrok.$(LIBSUFFIX) $(PREFIX)/lib
+	install -o root -g root -d $(DESTDIR)$(PREFIX)/bin
+	install -o root -g root -d $(DESTDIR)$(PREFIX)/lib
+	install -o root -g root -d $(DESTDIR)$(PREFIX)/include
+	install -m 755 -o root -g root grok $(DESTDIR)$(PREFIX)/bin
+	install -m 755 -o root -g root discogrok $(DESTDIR)$(PREFIX)/bin
+	install -m 644 -o root -g root libgrok.$(LIBSUFFIX) $(DESTDIR)$(PREFIX)/lib
 	for header in $(GROKHEADER); do \
-		install -m 644 -o root -g root $$header $(PREFIX)/include; \
+		install -m 644 -o root -g root $$header $(DESTDIR)$(PREFIX)/include; \
 	done 
-	install -d -o root -g root $(PREFIX)/share/grok
-	install -d -o root -g root $(PREFIX)/share/grok/patterns
-	install -o root -g root patterns/base $(PREFIX)/share/grok/patterns/
+	install -d -o root -g root $(DESTDIR)$(PREFIX)/share/grok
+	install -d -o root -g root $(DESTDIR)$(PREFIX)/share/grok/patterns
+	install -o root -g root patterns/base $(DESTDIR)$(PREFIX)/share/grok/patterns/
 
 uninstall:
-	rm -f $(PREFIX)/bin/grok
-	rm -f $(PREFIX)/bin/discogrok
-	rm -f $(PREFIX)/lib/libgrok.so
+	rm -f $(DESTDIR)$(PREFIX)/bin/grok
+	rm -f $(DESTDIR)$(PREFIX)/bin/discogrok
+	rm -f $(DESTDIR)$(PREFIX)/lib/libgrok.so
 	for header in $(GROKHEADER); do \
-		rm -f $(PREFIX)/include/$$header; \
+		rm -f $(DESTDIR)$(PREFIX)/include/$$header; \
 	done 
-	rm -f $(PREFIX)/share/grok/patterns/*
+	rm -f $(DESTDIR)$(PREFIX)/share/grok/patterns/*
 
 pre-create-package:
 	rm -f VERSION grok_version.h
