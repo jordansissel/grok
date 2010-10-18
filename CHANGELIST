@@ -1,3 +1,8 @@
+1.20101018.*
+  - API docs via doxygen
+  - rdoc for the Ruby module
+  - Add Grok::Pile to Ruby
+
 1.20100419.*
   - Fix tests
   - Add a ruby example for pattern discovery
