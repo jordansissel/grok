@@ -45,7 +45,6 @@ class Grok::Pile
   def match(string)
     @groks.each do |grok|
       match = grok.match(string)
-      #puts "Trying #{grok.pattern} against #{string}"
       if match
         return [grok, match]
       end
