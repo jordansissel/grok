@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
 
   svnrev = %x{svn info}.split("\n").grep(/Revision:/).first.split(" ").last.to_i
   spec.name = "jls-grok"
-  spec.version = "0.1.#{svnrev}"
+  spec.version = "0.2.#{svnrev}"
 
   spec.summary = "grok bindings for ruby"
   spec.description = "Grok ruby bindings - pattern match/extraction tool"
