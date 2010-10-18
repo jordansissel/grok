@@ -1,4 +1,5 @@
 require "Grok"
+require "grok/pile"
 
 # extend Grok to add simpler access to the discover feature.
 class Grok
