@@ -1,13 +1,13 @@
 #!/usr/bin/env ruby
 
-#require 'rubygems'
+require 'rubygems'
 require 'Grok'
 #require 'ruby-prof'
 require 'pp'
 
 #RubyProf.start  
 
-iterations = 20000
+iterations = 100000
 pattern = "[A-z0-9_-]*\\[[0-9]+\\]"
 
 grok = Grok.new
@@ -35,7 +35,7 @@ groktime = time(iterations) do |line|
     matches[:grok] += 1
     m.captures["FOO"]
   else
-    puts line
+    #puts line
     failures[:grok] +=1
   end
 end
@@ -49,6 +49,7 @@ end
 #end
 
 puts "Grok: #{matches[:grok] / groktime}"
+puts matches.inspect
 puts failures.inspect
 #puts "rubyre: #{rubyretime}"
 #puts matches.inspect
