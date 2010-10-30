@@ -117,7 +117,7 @@ test-package:
 	echo "Running C tests..." && $(MAKE) -C /tmp/$${PKGVER}/test test-c
 
 .PHONY: clean 
-clean: cleanobj cleanbin 
+clean: cleanobj cleanbin  package-debian-clean
 
 # reallyclean also purges generated files
 # we don't clean generated files in 'clean' target
@@ -238,3 +238,18 @@ VERSION:
 .PHONY: docs
 docs:
 	doxygen
+
+.PHONY: package-debian
+package-debian: debian
+	CFLAGS="$(CFLAGS)" debuild -uc -us
+
+package-debian-clean:
+	[ -d debian ] && rm -r debian
+
+debian:
+	dh_make -s -n -c bsd -e $$USER -p grok_$(VERSION) < /dev/null
+	sed -i -e "s/Build-Depends:.*/&, bison, ctags, flex, gperf, libevent-dev, libpcre3-dev, libtokyocabinet-dev/" debian/control
+	sed -i -e "s/Depends:.*/&, libevent-1.4-2 (>= 1.3), libtokyocabinet8 (>= 1.4.9), libpcre3 (>= 7.6)/" debian/control
+	sed -i -e "s/^Description:.*/Description: A powerful pattern-matching and reacting tool./" debian/control
+	sed -i -e "/^Description/,$$ { /^ *$$/d }" debian/control
+
