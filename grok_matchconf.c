@@ -1,6 +1,7 @@
 
 #define _GNU_SOURCE /* for asprintf */
 #include <stdio.h>
+#include <unistd.h>
 #include <errno.h>
 #include <string.h>
 #include "grok.h"
