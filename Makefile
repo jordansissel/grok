@@ -117,7 +117,7 @@ test-package:
 	echo "Running C tests..." && $(MAKE) -C /tmp/$${PKGVER}/test test-c
 
 .PHONY: clean 
-clean: cleanobj cleanbin  package-debian-clean
+clean: cleanobj cleanbin
 
 # reallyclean also purges generated files
 # we don't clean generated files in 'clean' target
