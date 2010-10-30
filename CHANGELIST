@@ -1,3 +1,6 @@
+1.20101030.*
+  - Add 'make package-debian' to produce a .deb build of grok.
+
 1.20101018.*
   - API docs via doxygen
   - rdoc for the Ruby module
