@@ -244,7 +244,7 @@ package-debian: debian
 	CFLAGS="$(CFLAGS)" debuild -uc -us
 
 package-debian-clean:
-	[ -d debian ] && rm -r debian
+	rm -r debian || true
 
 debian:
 	dh_make -s -n -c bsd -e $$USER -p grok_$(VERSION) < /dev/null
