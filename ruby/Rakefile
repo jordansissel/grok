@@ -1,6 +1,7 @@
 task :default => [:package]
 
 task :package do
+  system("make -C ext clean; rm ext/Makefile")
   system("svn up")
   system("gem build grok.gemspec")
 end
