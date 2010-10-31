@@ -8,7 +8,7 @@ if !find_header("grok.h", "/usr/local/include", "../../")
   raise "Could not find grok.h"
 end
 
-if !find_library("sgrok", "grok_init", "../", "../../", "/usr/local/lib")
+if !find_library("grok", "grok_init", "../", "../../", "/usr/local/lib")
   raise "Could not find libgrok, is it installed?"
 end
 
