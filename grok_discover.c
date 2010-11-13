@@ -214,6 +214,8 @@ void grok_discover(const grok_discover_t *gdt, /*grok_t *dest_grok, */
                  0, 0, "\\Q", 2);
   substr_replace(&pattern, &pattern_len, &pattern_size,
                  pattern_len, pattern_len, "\\E", 2);
+
+  /* TODO(sissel): Prune any useless \Q\E */
   *discovery = pattern;
   *discovery_len = pattern_len;
 }
