@@ -224,6 +224,19 @@ VALUE rGrok_patterns(VALUE self) {
   return patternmap;
 }
 
+VALUE rGrok_get_logmask(VALUE self) {
+  grok_t *grok;
+  Data_Get_Struct(self, grok_t, grok);
+  return INT2FIX(grok->logmask);
+}
+
+VALUE rGrok_set_logmask(VALUE self, VALUE mask) {
+  grok_t *grok;
+  Data_Get_Struct(self, grok_t, grok);
+  grok->logmask = FIX2INT(mask);
+  return Qnil;
+}
+
 void Init_Grok() {
   cGrok = rb_define_class("Grok", rb_cObject);
   rb_define_singleton_method(cGrok, "new", rGrok_new, 0);
@@ -236,6 +249,8 @@ void Init_Grok() {
   rb_define_method(cGrok, "add_patterns_from_file",
                    rGrok_add_patterns_from_file, 1);
   rb_define_method(cGrok, "patterns", rGrok_patterns, 0);
+  rb_define_method(cGrok, "logmask=", rGrok_set_logmask, 1);
+  rb_define_method(cGrok, "logmask", rGrok_get_logmask, 0);
 
   Init_GrokMatch();
   Init_GrokDiscover();

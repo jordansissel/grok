@@ -13,5 +13,6 @@ class Grok
   private
   def init_discover
     @discover = GrokDiscover.new(self)
+    @discover.logmask = logmask
   end
 end

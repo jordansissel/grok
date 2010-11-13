@@ -46,9 +46,24 @@ VALUE rGrokDiscover_discover(VALUE self, VALUE input) {
   return rb_str_new(cstr_discovery, discovery_len);
 }
 
+VALUE rGrokDiscover_get_logmask(VALUE self) {
+  grok_discover_t *gdt;
+  Data_Get_Struct(self, grok_discover_t, gdt);
+  return INT2FIX(gdt->logmask);
+}
+
+VALUE rGrokDiscover_set_logmask(VALUE self, VALUE mask) {
+  grok_discover_t *gdt;
+  Data_Get_Struct(self, grok_discover_t, gdt);
+  gdt->logmask = FIX2INT(mask);
+  return Qnil;
+}
+
 void Init_GrokDiscover() {
   cGrokDiscover = rb_define_class("GrokDiscover", rb_cObject);
   rb_define_singleton_method(cGrokDiscover, "new", rGrokDiscover_new, 1);
   rb_define_method(cGrokDiscover, "initialize", rGrokDiscover_initialize, 1);
   rb_define_method(cGrokDiscover, "discover", rGrokDiscover_discover, 1);
+  rb_define_method(cGrokDiscover, "logmask=", rGrokDiscover_set_logmask, 1);
+  rb_define_method(cGrokDiscover, "logmask", rGrokDiscover_get_logmask, 0);
 }
