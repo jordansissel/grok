@@ -1,3 +1,6 @@
+1.20101117.*
+  - Packaging fixes
+
 1.20101030.*
   - Add 'make package-debian' to produce a .deb build of grok.
 
