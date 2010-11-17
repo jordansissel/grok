@@ -1,0 +1,10 @@
+program {
+  exec "date" {
+    restart-on-exit: true
+    minimum-restart-delay: 5
+  }
+
+  match {
+    pattern: ".*"
+  }
+}
