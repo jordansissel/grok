@@ -58,7 +58,7 @@ cd ..
 install -c grok %{buildroot}/%{_bindir}
 install -c libgrok.so %{buildroot}/%{_libdir}
 install -c patterns/base %{buildroot}%{_sharedir}/patterns/base
-for header in grok.h grokre.h grok_pattern.h grok_capture.h grok_capture_xdr.h grok_match.h grok_logging.h grok_discover.h grok_version.h; do
+for header in grok.h grok_pattern.h grok_capture.h grok_capture_xdr.h grok_match.h grok_logging.h grok_discover.h grok_version.h; do
  install -c $header %{buildroot}/%{_includedir}
 done
 cd ruby
