@@ -60,6 +60,7 @@ LDFLAGS+=$(EXTRA_LDFLAGS)
 CLEANGEN=filters.c grok_matchconf_macro.c *.yy.c *.tab.c *.tab.h
 CLEANOBJ=*.o *_xdr.[ch]
 CLEANBIN=main grokre grok conftest grok_program
+CLEANVER=VERSION grok_version.h grok.spec
 
 GROKOBJ=grok.o grokre.o grok_capture.o grok_pattern.o stringhelper.o \
         predicates.o grok_capture_xdr.o grok_match.o grok_logging.o \
@@ -119,13 +120,16 @@ test-package:
 .PHONY: clean 
 clean: cleanobj cleanbin
 
-# reallyclean also purges generated files
+# reallyreallyclean also purges generated files
 # we don't clean generated files in 'clean' target
 # because some systems don't have the tools to regenerate
 # the data, such as FreeBSD which has the wrong flavor
 # of flex (not gnu flex)
+.PHONY: reallyreallyclean
+reallyreallyclean: reallyclean cleangen
+
 .PHONY: reallyclean
-reallyclean: clean cleangen
+reallyclean: clean cleanver
 
 .PHONY: cleanobj
 cleanobj:
@@ -138,6 +142,10 @@ cleanbin:
 .PHONY: cleangen
 cleangen:
 	rm -f $(CLEANGEN)
+
+.PHONY: cleanver
+cleanver:
+	rm -f $(CLEANVER)
 
 #.PHONY: test
 #test:
