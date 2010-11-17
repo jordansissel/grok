@@ -226,14 +226,16 @@ conf.yy.c: conf.lex conf.tab.h
 %.1: %.pod
 	pod2man -c "" -r "" $< $@
 
-grok.spec: grok.spec.in
-	sed -e "s/^Version: .*/Version: $(VERSION)/" grok.spec.in > grok.spec
-
 grok_version.h:
 	sh $(BASE)/version.sh --header > $@
 
 VERSION:
 	sh $(BASE)/version.sh --shell > $@
+
+grok.spec: grok.spec.template VERSION
+	. ./VERSION;
+	sed -e "s/^Version: .*/Version: $(VERSION)/" grok.spec.template > grok.spec
+
 
 .PHONY: docs
 docs:
