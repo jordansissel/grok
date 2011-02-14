@@ -8,7 +8,7 @@ class Grok::Match < FFI::Struct
     ffi_lib "libgrok.so"
 
     attach_function :grok_match_get_named_substring,
-                    [:pointer, :string], :pointer
+                    [:pointer, :pointer], :pointer
     attach_function :grok_match_walk_init, [:pointer], :void
     attach_function :grok_match_walk_next,
                     [:pointer, :pointer, :pointer, :pointer, :pointer], :int
@@ -32,15 +32,15 @@ class Grok::Match < FFI::Struct
   def _get_captures
     @captures = Hash.new { |h, k| h[k] = Array.new }
     grok_match_walk_init(self)
-    name_ptr = FFI::MemoryPointer.new(:string)
-    namelen_ptr = FFI::MemoryPointer.new(:pointer)
-    data_ptr = FFI::MemoryPointer.new(:string)
-    datalen_ptr = FFI::MemoryPointer.new(:pointer)
+    name_ptr = FFI::MemoryPointer.new(:pointer)
+    namelen_ptr = FFI::MemoryPointer.new(:int)
+    data_ptr = FFI::MemoryPointer.new(:pointer)
+    datalen_ptr = FFI::MemoryPointer.new(:int)
     while grok_match_walk_next(self, name_ptr, namelen_ptr, data_ptr, datalen_ptr) == Grok::GROK_OK
       namelen = namelen_ptr.read_int
-      name = name_ptr.get_pointer(0).read_string.dup.slice(0, namelen)
+      name = name_ptr.get_pointer(0).get_string(0, namelen)
       datalen = datalen_ptr.read_int
-      data = data_ptr.get_pointer(0).read_string.dup.slice(0, datalen)
+      data = data_ptr.get_pointer(0).get_string(0, datalen)
       @captures[name] << data
     end
     grok_match_walk_end(self)

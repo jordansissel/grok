@@ -7,11 +7,11 @@ class Grok < FFI::Struct
     ffi_lib "libgrok.so"
 
     attach_function :grok_new, [], :pointer
-    attach_function :grok_compilen, [:pointer, :string, :int], :int
+    attach_function :grok_compilen, [:pointer, :pointer, :int], :int
     attach_function :grok_pattern_add,
-                    [:pointer, :string, :int, :string, :int], :int
-    attach_function :grok_patterns_import_from_file, [:pointer, :string], :int
-    attach_function :grok_execn, [:pointer, :string, :int, :pointer], :int
+                    [:pointer, :pointer, :int, :pointer, :int], :int
+    attach_function :grok_patterns_import_from_file, [:pointer, :pointer], :int
+    attach_function :grok_execn, [:pointer, :pointer, :int, :pointer], :int
   end
 
   include CGrok
@@ -51,13 +51,16 @@ class Grok < FFI::Struct
 
   public
   def add_pattern(name, pattern)
-    grok_pattern_add(self, name, name.length, pattern, pattern.length)
+    name_c = FFI::MemoryPointer.from_string(name)
+    pattern_c = FFI::MemoryPointer.from_string(pattern)
+    grok_pattern_add(self, name_c, name.length, pattern_c, pattern.length)
     return nil
   end
 
   public
   def add_patterns_from_file(path)
-    ret = grok_patterns_import_from_file(self, path)
+    path_c = FFI::MemoryPointer.from_string(path)
+    ret = grok_patterns_import_from_file(self, path_c)
     if ret != GROK_OK
       raise ArgumentError, "Failed to add patterns from file #{path}"
     end
@@ -76,7 +79,8 @@ class Grok < FFI::Struct
 
   public
   def compile(pattern)
-    ret = grok_compilen(self, pattern, pattern.length)
+    pattern_c = FFI::MemoryPointer.from_string(pattern)
+    ret = grok_compilen(self, pattern_c, pattern.length)
     if ret != GROK_OK
       raise ArgumentError, "Compile failed: #{self[:errstr]})"
     end
@@ -86,7 +90,8 @@ class Grok < FFI::Struct
   public
   def match(text)
     match = Grok::Match.new
-    rc = grok_execn(self, text, text.size, match)
+    text_c = FFI::MemoryPointer.from_string(text)
+    rc = grok_execn(self, text_c, text.size, match)
     case rc
     when GROK_OK
       return match
