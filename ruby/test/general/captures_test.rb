@@ -24,7 +24,7 @@ class GrokPatternCapturingTests < Test::Unit::TestCase
     input = "hello world"
     match = @grok.match(input)
     assert_equal("(?<0000>.*)", @grok.expanded_pattern)
-    assert_kind_of(GrokMatch, match)
+    assert_kind_of(Grok::Match, match)
     assert_kind_of(Hash, match.captures)
     assert_equal(match.captures.length, 1)
     assert_kind_of(Array, match.captures["foo"])

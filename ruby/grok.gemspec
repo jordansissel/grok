@@ -6,22 +6,15 @@ Gem::Specification.new do |spec|
     examples/grok-web.rb
     examples/pattern-discovery.rb
     examples/test.rb
-    ext
-    ext/extconf.rb
-    ext/rgrok.h
-    ext/ruby_grok.c
-    ext/ruby_grokdiscover.c
-    ext/ruby_grokmatch.c
-    ext/ruby_grokmatch.h
     grok.gemspec
     lib
     lib/grok
     lib/grok.rb
+    lib/grok/match.rb
     lib/grok/pile.rb
     test
     test/Makefile
     test/alltests.rb
-    test/core
     test/general
     test/general/basic_test.rb
     test/general/captures_test.rb
@@ -45,16 +38,16 @@ Gem::Specification.new do |spec|
 
   svnrev = %x{svn info}.split("\n").grep(/Revision:/).first.split(" ").last.to_i
   spec.name = "jls-grok"
-  spec.version = "0.2.#{svnrev}"
+  spec.version = "0.3.#{svnrev}"
 
   spec.summary = "grok bindings for ruby"
   spec.description = "Grok ruby bindings - pattern match/extraction tool"
   spec.files = files
-  spec.require_paths << "ext"
-  spec.extensions = ["ext/extconf.rb"]
 
-  spec.author = "Jordan Sissel"
-  spec.email = "jls@semicomplete.com"
+  spec.add_dependency("ffi", ">= 1.0.5")
+
+  spec.authors = ["Jordan Sissel", "Pete Fritchman"]
+  spec.email = ["jls@semicomplete.com", "petef@databits.net"]
   spec.homepage = "http://code.google.com/p/semicomplete/wiki/Grok"
 end
 
