@@ -262,6 +262,12 @@ debian:
 	sed -i -e "s/Depends:.*/&, libevent-1.4-2 (>= 1.3), libtokyocabinet8 (>= 1.4.9), libpcre3 (>= 7.6)/" debian/control
 	sed -i -e "s/^Description:.*/Description: A powerful pattern-matching and reacting tool./" debian/control
 	sed -i -e "/^Description/,$$ { /^ *$$/d }" debian/control
-	echo '[ "$$1" = "configure" ] && ldconfig' > debian/postinst
-	echo '[ "$$1" = "remove" ] && ldconfig' > debian/postrm
+	echo '#!/bin/sh' > debian/postinst
+	echo '[ "$$1" = "configure" ] && ldconfig' >> debian/postinst
+	echo 'exit 0' >> debian/postinst
+	echo '#!/bin/sh' > debian/postrm
+	echo '[ "$$1" = "remove" ] && ldconfig' >> debian/postrm
+	echo 'exit 0' >> debian/postrm
+	chmod 755 debian/postinst debian/postrm
+
 
