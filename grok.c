@@ -97,6 +97,11 @@ static int grok_pcre_callout(pcre_callout_block *pcb) {
       lib = NULL;
     }
 
+    /* Hack so if we are dlopen()'d we can still find ourselves 
+     * This is necessary for cases like Ruby FFI which only dlopen's us
+     * and does not explicitly link/load us? */
+    lib = "libgrok.so";
+
     handle = dlopen(lib, RTLD_LAZY);
     predicate = dlsym(handle, gct->predicate_func_name);
     if (predicate != NULL) {
