@@ -36,15 +36,15 @@ Gem::Specification.new do |spec|
 
   files = files.gsub(/  +/, "").split("\n")
 
-  svnrev = %x{svn info}.split("\n").grep(/Revision:/).first.split(" ").last.to_i
+  #svnrev = %x{svn info}.split("\n").grep(/Revision:/).first.split(" ").last.to_i
   spec.name = "jls-grok"
-  spec.version = "0.3.#{svnrev}"
+  spec.version = "0.4.1"
 
   spec.summary = "grok bindings for ruby"
   spec.description = "Grok ruby bindings - pattern match/extraction tool"
   spec.files = files
 
-  spec.add_dependency("ffi", ">= 1.0.5")
+  spec.add_dependency("ffi", "~> 0.6.3")
 
   spec.authors = ["Jordan Sissel", "Pete Fritchman"]
   spec.email = ["jls@semicomplete.com", "petef@databits.net"]
