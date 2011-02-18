@@ -1,0 +1,5 @@
+*.o
+*.so
+*.1
+grok_capture_xdr.*
+grok_version.h
