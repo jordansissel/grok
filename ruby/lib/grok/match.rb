@@ -28,8 +28,8 @@ class Grok::Match < FFI::Struct
     @captures = nil
   end
 
-  private
-  def _get_captures
+  public
+  def each_capture
     @captures = Hash.new { |h, k| h[k] = Array.new }
     grok_match_walk_init(self)
     name_ptr = FFI::MemoryPointer.new(:pointer)
@@ -41,16 +41,21 @@ class Grok::Match < FFI::Struct
       name = name_ptr.get_pointer(0).get_string(0, namelen)
       datalen = datalen_ptr.read_int
       data = data_ptr.get_pointer(0).get_string(0, datalen)
-      @captures[name] << data
+      yield name, data
     end
     grok_match_walk_end(self)
-  end
+  end # def each_capture
 
   public
   def captures
-    _get_captures if @captures.nil?
+    if @captures.nil?
+      @captures = Hash.new { |h,k| h[k] = [] }
+      each_capture do |key, val|
+        @captures[key] << val
+      end
+    end
     return @captures
-  end
+  end # def captures
 
   public
   def start
@@ -65,11 +70,5 @@ class Grok::Match < FFI::Struct
   public
   def subject
     return self[:subject]
-  end
-
-  public
-  def each_capture
-    _get_captures if @captures.nil?
-    @captures.each { |k, v| yield([k, v]) }
   end
 end # Grok::Match

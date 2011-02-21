@@ -32,6 +32,11 @@ class GrokPatternCapturingTests < Test::Unit::TestCase
     assert_kind_of(String, match.captures["foo"][0])
     assert_equal(input, match.captures["foo"][0])
 
+    match.each_capture do |key, val|
+      assert(key.is_a?(String), "Grok::Match::each_capture should yield string,string, got #{key.class.name} as first argument.")
+      assert(val.is_a?(String), "Grok::Match::each_capture should yield string,string, got #{key.class.name} as first argument.")
+    end
+
     assert_kind_of(Fixnum, match.start)
     assert_kind_of(Fixnum, match.end)
     assert_kind_of(String, match.subject)
