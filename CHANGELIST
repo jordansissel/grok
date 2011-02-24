@@ -1,3 +1,7 @@
+1.20110223.*
+  - Allow ':' and '_' in pattern subnames, like: %{FOO:bar:baz}
+  - Pete Fritchman rewrite the ruby bindings in FFI instad of C.
+
 1.20101117.*
   - Packaging fixes
 
