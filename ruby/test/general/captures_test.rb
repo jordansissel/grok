@@ -90,4 +90,16 @@ class GrokPatternCapturingTests < Test::Unit::TestCase
       @grok.compile("%{foo}")
     end
   end
+
+  def test_valid_capture_subnames
+    name = "foo"
+    @grok.add_pattern(name, "\\w+")
+    subname = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_abc:def"
+    @grok.compile("%{#{name}:#{subname}}")
+    match = @grok.match("hello")
+    assert_not_equal(false, match)
+    assert_equal(1, match.captures.length)
+    assert_equal(1, match.captures["#{name}:#{subname}"].length)
+    assert_equal("hello", match.captures["#{name}:#{subname}"][0])
+  end
 end
