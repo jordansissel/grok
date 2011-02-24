@@ -74,7 +74,7 @@ extern int g_cap_predicate;
   "(?!<\\\\)%{" \
   "(?<name>" \
     "(?<pattern>[A-z0-9]+)" \
-    "(?::(?<subname>[A-z0-9]+))?" \
+    "(?::(?<subname>[A-z0-9_:]+))?" \
   ")" \
   "\\s*(?<predicate>" \
     "(?:" \
