@@ -94,6 +94,18 @@ class Grok < FFI::Struct
     rc = grok_execn(self, text_c, text.size, match)
     case rc
     when GROK_OK
+      # Give the Grok::Match object a reference to the 'text_c'
+      # object which is also Grok::Match#subject string;
+      # this will prevent Ruby from garbage collecting it until
+      # the match object is garbage collectd.
+      #
+      # If we don't do this, then 'text_c' will fall out of
+      # scope at the end of this function and become a candidate
+      # for garbage collection, causing Grok::Match#subject to become
+      # corrupt and any captures to point to those corrupt portions.
+      # http://code.google.com/p/logstash/issues/detail?id=47
+      match.subject_memorypointer = text_c
+
       return match
     when GROK_ERROR_NOMATCH
       return false

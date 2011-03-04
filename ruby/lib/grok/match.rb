@@ -21,6 +21,12 @@ class Grok::Match < FFI::Struct
          :start, :int,
          :end, :int
 
+  # Placeholder for the FFI::MemoryPointer that we pass to
+  # grok_execn() during Grok#match; this should prevent ruby from
+  # garbage collecting us until the GrokMatch goes out of scope.
+  # http://code.google.com/p/logstash/issues/detail?id=47
+  attr_accessor :subject_memorypointer
+
   public
   def initialize
     super
