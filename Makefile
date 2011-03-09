@@ -27,7 +27,7 @@ endif
 
 # For linux, we need libdl for dlopen()
 # On FreeBSD, comment this line out.
-ifeq ($(PLATFORM), GNU/Linux)
+ifeq ($(PLATFORM), GNULinux)
 LDFLAGS+=-ldl
 endif
 
