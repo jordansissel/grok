@@ -2,6 +2,8 @@
   - Multiple OSX fixes regarding the different shared library suffix (.dylib)
   - Tests pass: ruby 1.8.7, 1.9.2, jruby 1.5.6, jruby 1.6.0.RC2 on OS X
   - Tests pass: ruby 1.8.7, 1.9.2, jruby 1.5.6 on Ubuntu 10.04
+  - Remove Ruby stuff from the rpm grok.spec; if you want ruby grok, you will
+    need to install 'jls-grok' from rubygems (and also ffi)
 
 1.20110223.*
   - Allow ':' and '_' in pattern subnames, like: %{FOO:bar:baz}
