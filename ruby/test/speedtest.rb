@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'rubygems'
-require 'Grok'
+require 'grok'
 #require 'ruby-prof'
 require 'pp'
 
