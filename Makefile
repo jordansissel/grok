@@ -1,6 +1,6 @@
 PACKAGE=grok
 
-PLATFORM=$(shell (uname -o || uname -s) 2> /dev/null)
+PLATFORM=$(shell (uname -o || uname -s) | tr -d "/" 2> /dev/null)
 FLEX?=flex
 
 FORCE_FLEX?=0
