@@ -1,3 +1,8 @@
+1.20110308.*
+  - Multiple OSX fixes regarding the different shared library suffix (.dylib)
+  - Tests pass: ruby 1.8.7, 1.9.2, jruby 1.5.6, jruby 1.6.0.RC2 on OS X
+  - Tests pass: ruby 1.8.7, 1.9.2, jruby 1.5.6 on Ubuntu 10.04
+
 1.20110223.*
   - Allow ':' and '_' in pattern subnames, like: %{FOO:bar:baz}
   - Pete Fritchman rewrite the ruby bindings in FFI instad of C.
