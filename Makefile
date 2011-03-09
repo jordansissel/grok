@@ -53,6 +53,8 @@ LIBNAMEFLAG=$(shell sh $(BASE)/platform.sh libnameflag $(MAJOR) $(INSTALLLIB))
 CFLAGS+=-I/usr/local/include
 LDFLAGS+=-L/usr/local/lib
 
+# Platform so we know what to dlopen
+CFLAGS+=-DPLATFORM_$(PLATFORM)
 # Uncomment to totally disable logging features
 #CFLAGS+=-DNOLOGGING
 
