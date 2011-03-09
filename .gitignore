@@ -3,3 +3,10 @@
 *.1
 grok_capture_xdr.*
 grok_version.h
+*.gem
+grok
+test.grok
+discogrok
+grok.spec
+VERSION
+test/*.test
