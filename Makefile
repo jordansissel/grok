@@ -83,18 +83,18 @@ package:
 	$(MAKE) $(MAKEFLAGS) test-package 
 
 install: libgrok.$(LIBSUFFIX) grok discogrok $(GROKHEADER)
-	install -o root -g root -d $(DESTDIR)$(PREFIX)/bin
-	install -o root -g root -d $(DESTDIR)$(PREFIX)/lib
-	install -o root -g root -d $(DESTDIR)$(PREFIX)/include
-	install -m 755 -o root -g root grok $(DESTDIR)$(PREFIX)/bin
-	install -m 755 -o root -g root discogrok $(DESTDIR)$(PREFIX)/bin
-	install -m 644 -o root -g root libgrok.$(LIBSUFFIX) $(DESTDIR)$(PREFIX)/lib
+	install -d $(DESTDIR)$(PREFIX)/bin
+	install -d $(DESTDIR)$(PREFIX)/lib
+	install -d $(DESTDIR)$(PREFIX)/include
+	install -m 755 grok $(DESTDIR)$(PREFIX)/bin
+	install -m 755 discogrok $(DESTDIR)$(PREFIX)/bin
+	install -m 644 libgrok.$(LIBSUFFIX) $(DESTDIR)$(PREFIX)/lib
 	for header in $(GROKHEADER); do \
-		install -m 644 -o root -g root $$header $(DESTDIR)$(PREFIX)/include; \
+		install -m 644 $$header $(DESTDIR)$(PREFIX)/include; \
 	done 
-	install -d -o root -g root $(DESTDIR)$(PREFIX)/share/grok
-	install -d -o root -g root $(DESTDIR)$(PREFIX)/share/grok/patterns
-	install -o root -g root patterns/base $(DESTDIR)$(PREFIX)/share/grok/patterns/
+	install -d $(DESTDIR)$(PREFIX)/share/grok
+	install -d $(DESTDIR)$(PREFIX)/share/grok/patterns
+	install patterns/base $(DESTDIR)$(PREFIX)/share/grok/patterns/
 
 uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/bin/grok
