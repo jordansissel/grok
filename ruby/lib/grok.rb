@@ -4,7 +4,7 @@ require "ffi"
 class Grok < FFI::Struct
   module CGrok
     extend FFI::Library
-    ffi_lib "libgrok.so"
+    ffi_lib "libgrok"
 
     attach_function :grok_new, [], :pointer
     attach_function :grok_compilen, [:pointer, :pointer, :int], :int

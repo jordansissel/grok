@@ -5,7 +5,7 @@ require "grok"
 class Grok::Match < FFI::Struct
   module CGrokMatch
     extend FFI::Library
-    ffi_lib "libgrok.so"
+    ffi_lib "libgrok"
 
     attach_function :grok_match_get_named_substring,
                     [:pointer, :pointer], :pointer

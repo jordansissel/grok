@@ -11,6 +11,12 @@ else
 PREFIX?=/usr
 endif
 
+ifeq ($(PLATFORM), Darwin)
+LIBSUFFIX=dylib
+else
+LIBSUFFIX=so
+endif
+
 # On FreeBSD, you may want to set GPERF=/usr/local/bin/gperf since
 # the base system gperf is too old.
 ifeq ($(PLATFORM), FreeBSD)
@@ -99,7 +105,7 @@ install: libgrok.$(LIBSUFFIX) grok discogrok $(GROKHEADER)
 uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/bin/grok
 	rm -f $(DESTDIR)$(PREFIX)/bin/discogrok
-	rm -f $(DESTDIR)$(PREFIX)/lib/libgrok.so
+	rm -f $(DESTDIR)$(PREFIX)/lib/libgrok.$(LIBSUFFIX)
 	for header in $(GROKHEADER); do \
 		rm -f $(DESTDIR)$(PREFIX)/include/$$header; \
 	done 
