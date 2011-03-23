@@ -30,7 +30,7 @@ class Grok
     def compile(pattern)
       grok = Grok.new
       @patterns.each do |name, value|
-        grok.add_patterne(name, value)
+        grok.add_pattern(name, value)
       end
       @pattern_files.each do |path|
         grok.add_patterns_from_file(path)
