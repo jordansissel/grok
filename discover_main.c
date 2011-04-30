@@ -12,13 +12,14 @@ extern FILE *yyin; /* from conf.lex (flex provides this) */
 static char *g_prog;
 
 void usage() {
-  printf("Usage: %s [-d] <-f config_file>\n", g_prog);
-  printf("       -d        (optional) Daemonize/background\n");
-  printf("       -f file   (required) Use specified config file\n");
+  printf("Usage: %s [--verbose] [--patterns PATTERNSFILE]\n", g_prog);
+  printf("       --verbose\n");
+  printf("       --patterns PATTERNSFILE\n");
 }
 
 int main(int argc, char **argv) {
   int opt = 0;
+  g_prog = argv[0];
 
   struct option options[] = {
     { "patterns", required_argument, NULL, 'p' },
