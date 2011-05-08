@@ -14,18 +14,23 @@ matches = [
   #"( *%{DATA:key}:%{NOTSPACE:value})+"
 ]
 
-pile = Grok::Pile.new
-pile.add_patterns_from_file("../patterns/base")
-matches.collect do |m|
-  #g = Grok.new
-  #g.add_patterns_from_file("../patterns/base")
-  pile.compile(m)
-end
+#pile = Grok::Pile.new
+#pile.add_patterns_from_file("../patterns/base")
+#matches.collect do |m|
+  ##g = Grok.new
+  ##g.add_patterns_from_file("../patterns/base")
+  #pile.compile(m)
+#end
+
+grok = Grok.new
+grok.add_pattern("HELLO", "world")
+grok.compile("%{HELLO}")
 
 bytes = 0
 time_start = Time.now.to_f
 $stdin.each do |line|
-  grok, m = pile.match(line)
+  #grok, m = pile.match(line)
+  m = grok.match(line)
   if m
     #data = Hash.new { |h,k| h[k] = Array.new }
     #m.each_capture do |key, value|

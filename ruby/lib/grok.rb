@@ -2,38 +2,15 @@ require "rubygems"
 require "ffi"
 
 class Grok < FFI::Struct
-  module CGrok
-    extend FFI::Library
-    ffi_lib "libgrok"
-
-    attach_function :grok_new, [], :pointer
-    attach_function :grok_compilen, [:pointer, :pointer, :int], :int
-    attach_function :grok_pattern_add,
-                    [:pointer, :pointer, :int, :pointer, :int], :int
-    attach_function :grok_patterns_import_from_file, [:pointer, :pointer], :int
-    attach_function :grok_execn, [:pointer, :pointer, :int, :pointer], :int
-  end
-
-  include CGrok
-  layout :pattern, :string,
-         :pattern_len, :int,
-         :full_pattern, :string,
-         :full_pattern_len, :int,
-         :__patterns, :pointer, # TCTREE*, technically
-         :__re, :pointer, # pcre*
-         :__pcre_capture_vector, :pointer, # int*
-         :__pcre_num_captures, :int,
-         :__captures_by_id, :pointer, # TCTREE*
-         :__captures_by_name, :pointer, # TCTREE*
-         :__captures_by_subname, :pointer, # TCTREE*
-         :__captures_by_capture_number, :pointer, # TCTREE*
-         :__max_capture_num, :int,
-         :pcre_errptr, :string,
-         :pcre_erroffset, :int,
-         :pcre_errno, :int,
-         :logmask, :uint,
-         :logdepth, :uint,
-         :errstr, :string
+  attr_accessor :pattern
+  attr_accessor :expanded_pattern
+  
+  PATTERN_RE = \
+    /%{    # match '%{' not prefixed with '\'
+     (?<name>     # match the pattern name
+       (?<pattern>[A-z0-9]+)
+       (?::(?<subname>[A-z0-9_:]+))?
+     )}/x
 
   GROK_OK = 0
   GROK_ERROR_FILE_NOT_ACCESSIBLE = 1
@@ -46,45 +23,47 @@ class Grok < FFI::Struct
 
   public
   def initialize
-    super(grok_new)
-  end
+    #super(grok_new)
+    @patterns = {}
+  end # def initialize
 
   public
   def add_pattern(name, pattern)
-    name_c = FFI::MemoryPointer.from_string(name)
-    pattern_c = FFI::MemoryPointer.from_string(pattern)
-    grok_pattern_add(self, name_c, name.length, pattern_c, pattern.length)
+    @patterns[name] = pattern
     return nil
   end
 
   public
   def add_patterns_from_file(path)
-    path_c = FFI::MemoryPointer.from_string(path)
-    ret = grok_patterns_import_from_file(self, path_c)
-    if ret != GROK_OK
-      raise ArgumentError, "Failed to add patterns from file #{path}"
+    file = File.new(path, "r")
+    file.each do |line|
+      next if line =~ /^\s*#/
+      name, pattern = line.gsub(/^\s*/, "").split(/\s+/, 2)
+      add_pattern(name, pattern)
     end
     return nil
-  end
-
-  public
-  def pattern
-    return self[:pattern]
-  end
-
-  public
-  def expanded_pattern
-    return self[:full_pattern]
-  end
+  end # def add_patterns_from_file
 
   public
   def compile(pattern)
-    pattern_c = FFI::MemoryPointer.from_string(pattern)
-    ret = grok_compilen(self, pattern_c, pattern.length)
-    if ret != GROK_OK
-      raise ArgumentError, "Compile failed: #{self[:errstr]})"
+    iterations_left = 100
+    original_pattern = pattern
+    loop do
+      if iterations_left == 0
+        raise "Deep recursionon pattern compilation of #{original_pattern.inspect}"
+      end
+      iterations_left -= 1
+      m = PATTERN_RE.match(pattern)
+      break if !m
+
+      if @patterns.include?(m["pattern"])
+        pattern.gsub!(m[0], @patterns[m["pattern"]])
+      end
+      p m => pattern
+      sleep 1
     end
-    return ret
+    puts "Done compiling"
+    p pattern
   end
 
   public
