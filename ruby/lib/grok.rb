@@ -46,52 +46,51 @@ class Grok < FFI::Struct
 
   public
   def compile(pattern)
+    @capture_map = {}
+
     iterations_left = 100
-    original_pattern = pattern
+    @expanded_pattern = pattern
+    index = 0
+
+    # Replace any instances of '%{FOO}' with that pattern.
     loop do
       if iterations_left == 0
-        raise "Deep recursionon pattern compilation of #{original_pattern.inspect}"
+        raise "Deep recursionon pattern compilation of #{pattern.inspect}"
       end
       iterations_left -= 1
-      m = PATTERN_RE.match(pattern)
+      m = PATTERN_RE.match(@expanded_pattern)
       break if !m
 
       if @patterns.include?(m["pattern"])
-        pattern.gsub!(m[0], @patterns[m["pattern"]])
+        # create a named capture index that we can push later as the named
+        # pattern. We do this because ruby regexp can't capture something
+        # by the same name twice.
+        p = @patterns[m["pattern"]]
+        capture = "a#{index}" # named captures have to start with letters?
+        replacement_pattern = "(?<#{capture}>#{p})"
+        @capture_map[capture] = m["name"]
+        @expanded_pattern.gsub!(m[0], replacement_pattern)
+        index += 1
       end
-      p m => pattern
+      p m => @expanded_pattern
       sleep 1
     end
-    puts "Done compiling"
-    p pattern
-  end
+
+    @regexp = Regexp.new(@expanded_pattern)
+  end # def compile
 
   public
   def match(text)
-    match = Grok::Match.new
-    text_c = FFI::MemoryPointer.from_string(text)
-    rc = grok_execn(self, text_c, text.size, match)
-    case rc
-    when GROK_OK
-      # Give the Grok::Match object a reference to the 'text_c'
-      # object which is also Grok::Match#subject string;
-      # this will prevent Ruby from garbage collecting it until
-      # the match object is garbage collectd.
-      #
-      # If we don't do this, then 'text_c' will fall out of
-      # scope at the end of this function and become a candidate
-      # for garbage collection, causing Grok::Match#subject to become
-      # corrupt and any captures to point to those corrupt portions.
-      # http://code.google.com/p/logstash/issues/detail?id=47
-      match.subject_memorypointer = text_c
+    match = @regexp.match(text)
 
-      return match
-    when GROK_ERROR_NOMATCH
+    if match
+      grokmatch = Grok::Match.new
+      grokmatch.subject = text
+      grokmatch.match = match
+    else
       return false
     end
-
-    raise ValueError, "unknown return from grok_execn: #{rc}"
-  end
+  end # def match
 
   public
   def discover(input)

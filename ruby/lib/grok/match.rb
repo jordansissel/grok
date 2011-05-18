@@ -3,34 +3,15 @@ require "ffi"
 require "grok"
 
 class Grok::Match < FFI::Struct
-  module CGrokMatch
-    extend FFI::Library
-    ffi_lib "libgrok"
+  attr_accessor :subject
+  attr_accessor :start
+  attr_accessor :end
+  attr_accessor :grok
 
-    attach_function :grok_match_get_named_substring,
-                    [:pointer, :pointer], :pointer
-    attach_function :grok_match_walk_init, [:pointer], :void
-    attach_function :grok_match_walk_next,
-                    [:pointer, :pointer, :pointer, :pointer, :pointer], :int
-    attach_function :grok_match_walk_end, [:pointer], :void
-  end
-
-  include CGrokMatch
-  layout :grok, :pointer,
-         :subject, :string,
-         :start, :int,
-         :end, :int
-
-  # Placeholder for the FFI::MemoryPointer that we pass to
-  # grok_execn() during Grok#match; this should prevent ruby from
-  # garbage collecting us until the GrokMatch goes out of scope.
-  # http://code.google.com/p/logstash/issues/detail?id=47
-  attr_accessor :subject_memorypointer
+  attr_accessor :match
 
   public
   def initialize
-    super
-
     @captures = nil
   end
 
