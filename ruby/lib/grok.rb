@@ -1,7 +1,6 @@
 require "rubygems"
-require "ffi"
 
-class Grok < FFI::Struct
+class Grok
   attr_accessor :pattern
   attr_accessor :expanded_pattern
   
@@ -10,6 +9,7 @@ class Grok < FFI::Struct
      (?<name>     # match the pattern name
        (?<pattern>[A-z0-9]+)
        (?::(?<subname>[A-z0-9_:]+))?
+       [^}]*
      )}/x
 
   GROK_OK = 0
@@ -49,6 +49,7 @@ class Grok < FFI::Struct
     @capture_map = {}
 
     iterations_left = 100
+    @pattern = pattern
     @expanded_pattern = pattern
     index = 0
 
@@ -67,6 +68,7 @@ class Grok < FFI::Struct
         # by the same name twice.
         p = @patterns[m["pattern"]]
         capture = "a#{index}" # named captures have to start with letters?
+        #capture = "%04d" % "#{index}" # named captures have to start with letters?
         replacement_pattern = "(?<#{capture}>#{p})"
         @capture_map[capture] = m["name"]
         @expanded_pattern.sub!(m[0], replacement_pattern)
@@ -84,6 +86,7 @@ class Grok < FFI::Struct
     if match
       grokmatch = Grok::Match.new
       grokmatch.subject = text
+      grokmatch.start, grokmatch.end = match.offset(0)
       grokmatch.grok = self
       grokmatch.match = match
       return grokmatch

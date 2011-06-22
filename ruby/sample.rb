@@ -23,8 +23,11 @@ matches = [
 #end
 
 grok = Grok.new
-grok.add_pattern("HELLO", "world")
-grok.compile("%{HELLO}")
+#grok.add_pattern("HELLO", "world")
+grok.add_patterns_from_file("../patterns/base")
+grok.compile("%{SYSLOGBASE} %{DATA:message}")
+
+p grok.expanded_pattern
 
 bytes = 0
 time_start = Time.now.to_f
@@ -37,13 +40,15 @@ $stdin.each do |line|
       #data[key] << value
     #end
     #pp data
-    #pp m.captures
-    m.each_capture do |key, value|
-      p key => value
-    end
+    pp m.captures
+    #m.each_capture do |key, value|
+      #p key => value
+    #end
 
     #bytes += line.length
     break
+  else
+    p :nomatch
   end
 end
 

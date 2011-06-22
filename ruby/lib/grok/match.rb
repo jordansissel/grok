@@ -37,17 +37,7 @@ class Grok::Match
   end # def captures
 
   public
-  def start
-    return self[:start]
-  end
-
-  public
-  def end
-    return self[:end]
-  end
-
-  public
-  def subject
-    return self[:subject]
-  end
+  def [](name)
+    return captures[name]
+  end # def []
 end # Grok::Match
