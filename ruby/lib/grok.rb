@@ -23,7 +23,6 @@ class Grok < FFI::Struct
 
   public
   def initialize
-    #super(grok_new)
     @patterns = {}
   end # def initialize
 
@@ -39,7 +38,8 @@ class Grok < FFI::Struct
     file.each do |line|
       next if line =~ /^\s*#/
       name, pattern = line.gsub(/^\s*/, "").split(/\s+/, 2)
-      add_pattern(name, pattern)
+      next if pattern.nil?
+      add_pattern(name, pattern.chomp)
     end
     return nil
   end # def add_patterns_from_file
@@ -69,11 +69,9 @@ class Grok < FFI::Struct
         capture = "a#{index}" # named captures have to start with letters?
         replacement_pattern = "(?<#{capture}>#{p})"
         @capture_map[capture] = m["name"]
-        @expanded_pattern.gsub!(m[0], replacement_pattern)
+        @expanded_pattern.sub!(m[0], replacement_pattern)
         index += 1
       end
-      p m => @expanded_pattern
-      sleep 1
     end
 
     @regexp = Regexp.new(@expanded_pattern)
@@ -86,7 +84,9 @@ class Grok < FFI::Struct
     if match
       grokmatch = Grok::Match.new
       grokmatch.subject = text
+      grokmatch.grok = self
       grokmatch.match = match
+      return grokmatch
     else
       return false
     end
@@ -97,13 +97,18 @@ class Grok < FFI::Struct
     init_discover if @discover == nil
 
     return @discover.discover(input)
-  end
+  end # def discover
 
   private
   def init_discover
     @discover = GrokDiscover.new(self)
     @discover.logmask = logmask
-  end
+  end # def init_discover
+
+  public
+  def capture_name(id)
+    return @capture_map[id]
+  end # def capture_name
 end # Grok
 
 require "grok/match"
