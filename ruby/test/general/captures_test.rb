@@ -137,4 +137,16 @@ class GrokPatternCapturingTests < Test::Unit::TestCase
     assert_equal(1, match.captures["EMAIL:email"].length)
     assert_equal(email, match.captures["EMAIL:email"].first)
   end
+
+  # TODO(sissel): This doesn't work yet.
+  def __test_grok_inline_definition_with_predicate
+    input = "key=123"
+    @grok[:logmask] = 0xffffff
+    @grok.compile("key=%{VALUE=\\d+ == 123}")
+    match = @grok.match(input)
+    assert_not_equal(false, match, "Expected '#{input}' to match '#{@grok.expanded_pattern}'")
+    assert_equal(1, match.captures.length)
+    assert_equal(1, match.captures["VALUE"].length)
+    assert_equal("123", match.captures["VALUE"].first)
+  end
 end
