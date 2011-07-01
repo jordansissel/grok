@@ -184,6 +184,7 @@ static char *grok_pattern_expand(grok_t *grok) {
     const char *pattern_regex;
     int patname_len;
     size_t regexp_len;
+    int pattern_regex_needs_free = 0;
 
     grok_log(grok, LOG_REGEXPAND, "% 20s: %.*s", "start of loop",
              full_len, full_pattern);
@@ -208,9 +209,29 @@ static char *grok_pattern_expand(grok_t *grok) {
     grok_log(grok, LOG_REGEXPAND, "Pattern name: %.*s", patname_len, patname);
 
     grok_pattern_find(grok, patname, patname_len, &pattern_regex, &regexp_len);
+
     if (pattern_regex == NULL) {
-      offset = end;
-    } else {
+      /* Pattern not found, check if this has an in-line definition */
+      int definition_len = capture_vector[g_cap_definition * 2 + 1] 
+                           - capture_vector[g_cap_definition * 2];
+      if (definition_len > 0) {
+        /* We got an in-line definition */
+        /* discard const-ness with reckless abandon! */
+        pattern_regex = strndup(full_pattern + capture_vector[g_cap_definition * 2], definition_len);
+        regexp_len = definition_len;
+        pattern_regex_needs_free = 1;
+        grok_log(grok, LOG_REGEXPAND, "Inline-definition found: %.*s => '%.*s'",
+                 patname_len, patname, regexp_len, pattern_regex);
+      } else {
+        /* If we get here, there's definitely no pattern available for the 
+         * current %{thing}, so just leave it unmolested. */
+        offset = end;
+      }
+    }
+    
+    /* Check for nullness again because there could've been an inline
+     * definition found above */
+    if (pattern_regex != NULL) {
       int has_predicate = (capture_vector[g_cap_predicate * 2] >= 0);
       const char *longname = NULL;
       const char *subname = NULL;
@@ -286,12 +307,15 @@ static char *grok_pattern_expand(grok_t *grok) {
       capture_id++;
     }
 
+    if (pattern_regex_needs_free) {
+      /* If we need to free,   */
+      free(pattern_regex);
+    }
     if (patname != NULL) {
       pcre_free_substring(patname);
       patname = NULL;
     }
-    //free(pattern_regex);
-  }
+  } /* while pcre_exec */
 
   /* Unescape any "\%" strings found */
   offset = 0;
@@ -309,7 +333,7 @@ static char *grok_pattern_expand(grok_t *grok) {
   grok->full_pattern_len = full_len;
   grok->full_pattern = full_pattern;
   return full_pattern;
-}
+} /* grok_pattern_expand */
 
 static void grok_capture_add_predicate(grok_t *grok, int capture_id,
                                        const char *predicate, int predicate_len) {

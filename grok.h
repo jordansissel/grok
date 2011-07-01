@@ -66,16 +66,26 @@ extern int g_cap_name;
 extern int g_cap_pattern;
 extern int g_cap_subname;
 extern int g_cap_predicate;
+extern int g_cap_definition;
 
 /* pattern to match %{FOO:BAR} */
 /* or %{FOO<=3} */
 
 #define PATTERN_REGEX \
-  "(?!<\\\\)%{" \
+  "(?!<\\\\)%\\{" \
   "(?<name>" \
     "(?<pattern>[A-z0-9]+)" \
     "(?::(?<subname>[A-z0-9_:]+))?" \
   ")" \
+  "(?:=" \
+    "(?<definition>" \
+      "(?:" \
+        "(?P<curly2>\\{(?:(?>[^{}]+|(?>\\\\[{}])+)|(?P>curly2))*\\})+" \
+        "|" \
+        "(?:[^{}]+|\\\\[{}])+" \
+      ")+" \
+    ")" \
+  ")?" \
   "\\s*(?<predicate>" \
     "(?:" \
       "(?P<curly>\\{(?:(?>[^{}]+|(?>\\\\[{}])+)|(?P>curly))*\\})" \
@@ -83,7 +93,7 @@ extern int g_cap_predicate;
       "(?:[^{}]+|\\\\[{}])+" \
     ")+" \
   ")?" \
-  "}"
+  "\\}"
 
 /** Safe return code */
 #define GROK_OK 0

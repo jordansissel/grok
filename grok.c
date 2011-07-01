@@ -10,6 +10,7 @@ int g_cap_name = 0;
 int g_cap_pattern = 0;
 int g_cap_subname = 0;
 int g_cap_predicate = 0;
+int g_cap_definition = 0;
 
 grok_t *grok_new() {
   grok_t *grok;
@@ -68,6 +69,7 @@ void grok_init(grok_t *grok) {
     g_cap_pattern = pcre_get_stringnumber(g_pattern_re, "pattern");
     g_cap_subname = pcre_get_stringnumber(g_pattern_re, "subname");
     g_cap_predicate = pcre_get_stringnumber(g_pattern_re, "predicate");
+    g_cap_definition = pcre_get_stringnumber(g_pattern_re, "definition");
   }
 }
 

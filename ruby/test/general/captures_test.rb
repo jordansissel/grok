@@ -102,4 +102,39 @@ class GrokPatternCapturingTests < Test::Unit::TestCase
     assert_equal(1, match.captures["#{name}:#{subname}"].length)
     assert_equal("hello", match.captures["#{name}:#{subname}"][0])
   end
+
+  def test_grok_inline_definition
+    input = "key=123"
+    @grok.compile("key=%{VALUE=\\d+}")
+    match = @grok.match(input)
+    assert_not_equal(false, match, "Expected '#{input}' to match '#{@grok.expanded_pattern}'")
+    assert_equal(1, match.captures.length)
+    assert_equal(1, match.captures["VALUE"].length)
+    assert_equal("123", match.captures["VALUE"].first)
+  end
+
+  def test_grok_crazy_nested_inline_definition
+    email = "something@some.host.name"
+    input = "HELLO #{email}"
+    #@grok[:logmask] = 0xffffff
+    @grok.compile("HELLO %{EMAIL:email=[A-Za-z_+-]+@%{MYDOMAIN=some\\.host\\.name}}")
+    match = @grok.match(input)
+    assert_not_equal(false, match, "Expected '#{input}' to match '#{@grok.expanded_pattern}'")
+    assert_equal(2, match.captures.length)
+    assert_equal(1, match.captures["EMAIL:email"].length)
+    assert_equal(email, match.captures["EMAIL:email"].first)
+  end
+
+  def test_grok_nested_inline_definition
+    email = "something@some.host.name"
+    input = "HELLO #{email}"
+    @grok.add_pattern("MYDOMAIN", "some\\.host\\.name")
+    #@grok[:logmask] = 0xffffff
+    @grok.compile("HELLO %{EMAIL:email=[A-Za-z_+-]+@%{MYDOMAIN}}")
+    match = @grok.match(input)
+    assert_not_equal(false, match, "Expected '#{input}' to match '#{@grok.expanded_pattern}'")
+    assert_equal(2, match.captures.length)
+    assert_equal(1, match.captures["EMAIL:email"].length)
+    assert_equal(email, match.captures["EMAIL:email"].first)
+  end
 end
