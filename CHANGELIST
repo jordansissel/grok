@@ -1,3 +1,11 @@
+1.20110630.*
+  - Allow patterns to be defined in-line.
+      Synopsis: %{NAME=pattern}
+      Example: %{NUMBER:foo=\d+}
+    This is most useful for defining named-captures in-line for one-offs.
+    It was designed for use in logstash, but is certainly appropriate
+    elsewhere.
+
 1.20110429.*
   - fix debian packaging problems
 
