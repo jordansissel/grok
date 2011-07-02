@@ -162,14 +162,14 @@ cleanver:
 # Binary creation
 grok: LDFLAGS+=-levent
 grok: $(GROKOBJ) conf.tab.o conf.yy.o main.o grok_config.o
-	gcc $(LDFLAGS) $^ -o $@
+	$(CC) $(LDFLAGS) $^ -o $@
 
 discogrok: $(GROKOBJ) discover_main.o
-	gcc $(LDFLAGS) $^ -o $@
+	$(CC) $(LDFLAGS) $^ -o $@
 
 libgrok.$(LIBSUFFIX): 
 libgrok.$(LIBSUFFIX): $(GROKOBJ) 
-	gcc $(LDFLAGS) -fPIC $(DYNLIBFLAG) $(LIBNAMEFLAG) $^ -o $@
+	$(CC) $(LDFLAGS) -fPIC $(DYNLIBFLAG) $(LIBNAMEFLAG) $^ -o $@
 
 libgrok.$(VERLIBSUFFIX): libgrok.$(LIBSUFFIX);
 	ln -s $< $@

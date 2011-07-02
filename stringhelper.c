@@ -244,7 +244,7 @@ char *string_ndup(const char *src, size_t size) {
 } /* char *string_ndup */
 
 int string_count(const char *src, const char *charlist) {
-  string_ncount(src, strlen(src), charlist, strlen(charlist));
+  return (string_ncount(src, strlen(src), charlist, strlen(charlist)));
 } /* int string_count */
 
 int string_ncount(const char *src, size_t srclen,

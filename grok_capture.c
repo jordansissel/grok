@@ -96,7 +96,7 @@ const grok_capture *grok_capture_get_by_id(grok_t *grok, int id) {
   return gct;
 }
 
-const grok_capture *grok_capture_get_by_name(grok_t *grok, const char *name) {
+const grok_capture *grok_capture_get_by_name(const grok_t *grok, const char *name) {
   int unused_size;
   const grok_capture *gct;
   const TCLIST *by_name_list;
@@ -111,7 +111,7 @@ const grok_capture *grok_capture_get_by_name(grok_t *grok, const char *name) {
   return gct;
 }
 
-const grok_capture *grok_capture_get_by_subname(grok_t *grok,
+const grok_capture *grok_capture_get_by_subname(const grok_t *grok,
                                                 const char *subname) {
   int unused_size;
   const grok_capture *gct;
@@ -213,11 +213,11 @@ void grok_capture_free(grok_capture *gct) {
 }
 
 /* this function will walk the captures_by_id table */
-void grok_capture_walk_init(grok_t *grok) {
+void grok_capture_walk_init(const grok_t *grok) {
   tctreeiterinit(grok->captures_by_id);
 }
 
-const grok_capture *grok_capture_walk_next(grok_t *grok) {
+const grok_capture *grok_capture_walk_next(const grok_t *grok) {
   int id_size;
   int gct_size;
   int *id;

@@ -298,8 +298,8 @@ char *grok_matchconfig_filter_reaction(const char *str, grok_match_t *gm) {
               } else { /* VALUE_JSON_COMPLEX */ 
                 entry_len = asprintf(&entry, 
                                      "{ \"%.*s\": { "
-                                     "\"start\": %d, "
-                                     "\"end\": %d, "
+                                     "\"start\": %ld, "
+                                     "\"end\": %ld, "
                                      "\"value\": \"%.*s\""
                                      " } }, ",
                                      pname_len, pname, 

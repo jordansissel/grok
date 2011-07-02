@@ -37,7 +37,7 @@ int grok_match_get_named_substring(const grok_match_t *gm, const char *name,
 }
 
 void grok_match_walk_init(const grok_match_t *gm) {
-  grok_t *grok = gm->grok;
+  const grok_t *grok = gm->grok;
   grok_capture_walk_init(grok);
 }
 
