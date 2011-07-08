@@ -1,3 +1,7 @@
+1.20110708.*
+  - Patch from wxs to clean up some compiler warnings/issues and also
+    to have the Makefile obey CC
+
 1.20110630.*
   - Allow patterns to be defined in-line.
       Synopsis: %{NAME=pattern}
