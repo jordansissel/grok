@@ -14,6 +14,9 @@ Requires: pcre >= 7.6
 Requires: tokyocabinet >= 1.4.9
 BuildRequires: libevent-devel gperf tokyocabinet-devel pcre-devel
 
+# no longer needed -- modern jls-grok gem uses libffi
+Obsoletes: grok-ruby
+
 %description
 A powerful pattern matching system for parsing and processing text data such
 as log files.
