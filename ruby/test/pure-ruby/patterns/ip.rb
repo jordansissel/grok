@@ -1,5 +1,5 @@
 $: << File.join(File.dirname(__FILE__), "..", "..", "..", "lib")
-require 'grok'
+require 'grok-pure'
 require 'test/unit'
 
 class IPPatternsTest < Test::Unit::TestCase
