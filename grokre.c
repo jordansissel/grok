@@ -217,7 +217,7 @@ static char *grok_pattern_expand(grok_t *grok) {
       if (definition_len > 0) {
         /* We got an in-line definition */
         /* discard const-ness with reckless abandon! */
-        pattern_regex = strndup(full_pattern + capture_vector[g_cap_definition * 2], definition_len);
+        pattern_regex = string_ndup(full_pattern + capture_vector[g_cap_definition * 2], definition_len);
         regexp_len = definition_len;
         pattern_regex_needs_free = 1;
         grok_log(grok, LOG_REGEXPAND, "Inline-definition found: %.*s => '%.*s'",
