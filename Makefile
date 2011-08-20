@@ -66,7 +66,7 @@ LDFLAGS+=$(EXTRA_LDFLAGS)
 ### End of user-servicable configuration
 
 CLEANGEN=filters.c grok_matchconf_macro.c *.yy.c *.tab.c *.tab.h
-CLEANOBJ=*.o *_xdr.[ch]
+CLEANOBJ=*.o *_xdr.[ch] *.so
 CLEANBIN=main grokre grok conftest grok_program
 CLEANVER=VERSION grok_version.h grok.spec
 

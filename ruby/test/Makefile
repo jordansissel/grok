@@ -7,11 +7,13 @@ else
 LIBSUFFIX=so
 endif
 
-.PHONY: test
-test:
+../../libgrok.$(LIBSUFFIX):
 	$(MAKE) -C ../../ libgrok.$(LIBSUFFIX)
-	LD_LIBRARY_PATH="$${LD_LIBRARY_PATH}:$$PWD/../../" RUBYLIB="$$PWD/../lib" ruby alltests.rb
 
-test_jruby:
-	$(MAKE) -C ../../ libgrok.$(LIBSUFFIX)
-	LD_LIBRARY_PATH="$${LD_LIBRARY_PATH}:$$PWD/../../" RUBYLIB="$$PWD/../lib" jruby alltests.rb
+.PHONY: test
+test-pure: ../../libgrok.$(LIBSUFFIX)
+	JRUBY_OPTS=--1.9 LD_LIBRARY_PATH="$${LD_LIBRARY_PATH}:$$PWD/../../" RUBYLIB="$$PWD/../lib" ruby pure-ruby/alltests.rb
+
+
+test-ffi: ../../libgrok.$(LIBSUFFIX)
+	JRUBY_OPTS=--1.9 LD_LIBRARY_PATH="$${LD_LIBRARY_PATH}:$$PWD/../../" RUBYLIB="$$PWD/../lib" ruby ffi-ruby/alltests.rb
