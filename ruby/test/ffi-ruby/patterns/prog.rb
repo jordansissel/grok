@@ -4,7 +4,7 @@ require 'test/unit'
 class ProgPatternsTest < Test::Unit::TestCase
   def setup
     @grok = Grok.new
-    path = "#{File.dirname(__FILE__)}/../../../patterns/base"
+    path = "#{File.dirname(__FILE__)}/../../../../patterns/base"
     @grok.add_patterns_from_file(path)
     @grok.compile("^%{PROG}$")
   end
