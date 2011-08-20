@@ -7,11 +7,19 @@ class Grok
   
   PATTERN_RE = \
     /%{    # match '%{' not prefixed with '\'
-     (?<name>     # match the pattern name
-       (?<pattern>[A-z0-9]+)
-       (?::(?<subname>[A-z0-9_:]+))?
+       (?<name>     # match the pattern name
+         (?<pattern>[A-z0-9]+)
+         (?::(?<subname>[A-z0-9_:]+))?
+       )
+       (?:=(?<definition>
+         (?:
+           (?:[^{}\\]+|\\.+)+
+           |
+           (?<curly>\{(?:(?>[^{}]+|(?>\\[{}])+)|(\g<curly>))*\})+
+         )+
+       ))?
        [^}]*
-     )}/x
+     }/x
 
   GROK_OK = 0
   GROK_ERROR_FILE_NOT_ACCESSIBLE = 1
@@ -61,17 +69,22 @@ class Grok
     # Replace any instances of '%{FOO}' with that pattern.
     loop do
       if iterations_left == 0
-        raise "Deep recursionon pattern compilation of #{pattern.inspect} - expanded: #{@expanded_pattern.inspect}"
+        raise "Deep recursion pattern compilation of #{pattern.inspect} - expanded: #{@expanded_pattern.inspect}"
       end
       iterations_left -= 1
       m = PATTERN_RE.match(@expanded_pattern)
       break if !m
+
+      if m["definition"]
+        add_pattern(m["pattern"], m["definition"])
+      end
 
       if @patterns.include?(m["pattern"])
         # create a named capture index that we can push later as the named
         # pattern. We do this because ruby regexp can't capture something
         # by the same name twice.
         p = @patterns[m["pattern"]]
+
         capture = "a#{index}" # named captures have to start with letters?
         #capture = "%04d" % "#{index}" # named captures have to start with letters?
         replacement_pattern = "(?<#{capture}>#{p})"

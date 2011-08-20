@@ -4,14 +4,8 @@ require "grok-pure"
 patterns = {}
 
 matches = [
-  #"%{SYSLOGBASE} Accepted %{NOTSPACE:method} for %{DATA:user} from %{IPORHOST:client} port %{INT:port}",
-  #"%{SYSLOGBASE} Did not receive identification string from %{IPORHOST:client}",
-  #"%{SYSLOGBASE} error: PAM: authentication error for %{DATA:user} from %{IPORHOST:client}",
-  #"%{QUOTEDSTRING}"
-  "%{COMBINEDAPACHELOG}",
-  #"%{UNINDEXED}hello (?=%{GREEDYDATA})%{WORD}"
-  
-  #"( *%{DATA:key}:%{NOTSPACE:value})+"
+  "%{FOO=\\d+}",
+  #"%{FOO=foo}",
 ]
 
 pile = Grok::Pile.new
