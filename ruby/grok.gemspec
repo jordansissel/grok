@@ -46,7 +46,6 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency("ffi", "~> 0.6.3")
   spec.require_paths << "lib" 
-  spec.require_paths << "ext"  # for "Grok.rb" giving backwards compat to Grok.so
 
   spec.authors = ["Jordan Sissel", "Pete Fritchman"]
   spec.email = ["jls@semicomplete.com", "petef@databits.net"]
