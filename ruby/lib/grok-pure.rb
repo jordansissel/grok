@@ -25,10 +25,13 @@ class Grok
   public
   def initialize
     @patterns = {}
+
+    # TODO(sissel): Throw exception if we aren't using Ruby 1.9.2 or newer.
   end # def initialize
 
   public
   def add_pattern(name, pattern)
+    #puts "#{name} => #{pattern}"
     @patterns[name] = pattern
     return nil
   end
@@ -38,6 +41,7 @@ class Grok
     file = File.new(path, "r")
     file.each do |line|
       next if line =~ /^\s*#/
+      #puts "Pattern: #{line}"
       name, pattern = line.gsub(/^\s*/, "").split(/\s+/, 2)
       next if pattern.nil?
       add_pattern(name, pattern.chomp)
@@ -57,7 +61,7 @@ class Grok
     # Replace any instances of '%{FOO}' with that pattern.
     loop do
       if iterations_left == 0
-        raise "Deep recursionon pattern compilation of #{pattern.inspect}"
+        raise "Deep recursionon pattern compilation of #{pattern.inspect} - expanded: #{@expanded_pattern.inspect}"
       end
       iterations_left -= 1
       m = PATTERN_RE.match(@expanded_pattern)
@@ -71,6 +75,7 @@ class Grok
         capture = "a#{index}" # named captures have to start with letters?
         #capture = "%04d" % "#{index}" # named captures have to start with letters?
         replacement_pattern = "(?<#{capture}>#{p})"
+        #p(:input => m[0], :pattern => replacement_pattern)
         @capture_map[capture] = m["name"]
         @expanded_pattern.sub!(m[0], replacement_pattern)
         index += 1
