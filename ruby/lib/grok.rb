@@ -1,6 +1,7 @@
 require "rubygems"
 require "ffi"
 
+# TODO(sissel): Check if 'grok-pure' has been loaded and abort?
 class Grok < FFI::Struct
   module CGrok
     extend FFI::Library
@@ -128,5 +129,5 @@ class Grok < FFI::Struct
   end
 end # Grok
 
-require "grok/match"
-require "grok/pile"
+require "grok/c-ext/match"
+require "grok/c-ext/pile"
