@@ -1,41 +1,23 @@
 #!/usr/bin/env ruby
 
 require 'rubygems'
-require 'grok'
-#require 'ruby-prof'
-require 'pp'
+require 'grok-pure'
 
-#RubyProf.start  
-
-def main
-  iterations = 1000000
-  pattern = "[A-z0-9_-]*\\[[0-9]+\\]"
+def main(args)
 
   grok = Grok.new
-  grok.add_patterns_from_file("../../patterns/base")
+  grok.add_patterns_from_file("../../patterns/pure-ruby/base")
   grok.compile("%{COMBINEDAPACHELOG}")
-
-  #rubyre = Regexp.new("(?<foo>#{pattern})")
-  #rubyre = Regexp.new(pattern)
 
   matches = 0
   failures = 0
-  lines = File.new("/home/jls/access_log").readlines
+  lines = File.new(args[0]).readlines
+  iterations = lines.length
 
-  while lines.length < iterations
-    lines += lines
-  end
-  lines = lines[0 .. iterations]
-
-  def time(lines, iterations, &block)
-    start = Time.now
-    #file = File.open("/b/logs/access")
-    #data = (1 .. iterations).collect { file.readline() }
-    1.upto(iterations) do |i|
-      block.call lines[i]
-    end
-    return Time.now - start
-  end
+  #while lines.length < iterations
+    #lines += lines
+  #end
+  #lines = lines[0 .. iterations]
 
   start = Time.now
   lines.each do |line|
@@ -44,27 +26,23 @@ def main
       matches += 1
       m.captures
     else
-      #puts line
       failures += 1
     end
   end
   duration = Time.now - start
-
-  #rubyretime = time(iterations) do |line|
-    #m = rubyre.match(line)
-    #if m 
-      #matches[:rubyre] += 1
-      #m["foo"]
-    #end
-  #end
 
   puts "Parse rate: #{iterations / duration}"
   puts matches.inspect
   puts failures.inspect
 end
 
+if ARGV.empty?
+  $stderr.puts "Usage: #{$0} access_log_path"
+  exit 1
+end
+
 threads = []
-1.upto(3) do |i|
-  threads << Thread.new { main }
+1.upto(2) do |i|
+  threads << Thread.new { main(ARGV) }
 end
 threads.each(&:join)
