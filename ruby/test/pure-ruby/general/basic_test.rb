@@ -1,5 +1,5 @@
-#require 'rubygems'
-require 'grok'
+$: << File.join(File.dirname(__FILE__), "..", "..", "..", "lib")
+require 'grok/pure'
 require 'test/unit'
 
 class GrokBasicTests < Test::Unit::TestCase
