@@ -5,14 +5,14 @@ Gem::Specification.new do |spec|
 
   #svnrev = %x{svn info}.split("\n").grep(/Revision:/).first.split(" ").last.to_i
   spec.name = "jls-grok"
-  spec.version = "0.5.2"
+  spec.version = "0.9.0"
 
   spec.summary = "grok bindings for ruby"
   spec.description = "Grok ruby bindings - pattern match/extraction tool"
   spec.files = files
 
   # TODO(sissel): ffi is now optional, get rid of it?
-  spec.add_dependency("ffi", "~> 0.6.3")
+  #spec.add_dependency("ffi", "> 0.6.3")
   spec.require_paths << "lib" 
 
   spec.authors = ["Jordan Sissel", "Pete Fritchman"]
