@@ -11,7 +11,7 @@ endif
 	$(MAKE) -C ../../ libgrok.$(LIBSUFFIX)
 
 .PHONY: test
-test-pure: ../../libgrok.$(LIBSUFFIX)
+test-pure:
 	JRUBY_OPTS=--1.9 LD_LIBRARY_PATH="$${LD_LIBRARY_PATH}:$$PWD/../../" RUBYLIB="$$PWD/../lib" ruby pure-ruby/alltests.rb
 
 
