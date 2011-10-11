@@ -1,6 +1,6 @@
 PACKAGE=grok
 
-PLATFORM=$(shell (uname -s || uname -o) | tr -d "/" 2> /dev/null)
+PLATFORM=$(shell (uname -o 2> /dev/null || uname -s) | tr -d "/" 2> /dev/null)
 FLEX?=flex
 
 FORCE_FLEX?=0
@@ -27,7 +27,7 @@ endif
 
 # For linux, we need libdl for dlopen()
 # On FreeBSD, comment this line out.
-ifeq ($(PLATFORM), Linux)
+ifeq ($(PLATFORM), GNULinux)
 LDFLAGS+=-ldl
 endif
 
