@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
   grok_init(&grok);
 
   int pattern_count = 0;
-  while ((opt = getopt_long_only(argc, argv, "hp:v", options, &optind)) != -1) {
+  while ((opt = getopt_long_only(argc, argv, "hp:v", options, NULL)) != -1) {
     switch (opt) {
       case 'h':
         usage();
