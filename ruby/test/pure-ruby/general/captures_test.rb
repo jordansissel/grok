@@ -91,6 +91,19 @@ class GrokPatternCapturingTests < Test::Unit::TestCase
     end
   end
 
+  def test_inline_define
+    path = "#{File.dirname(__FILE__)}/../../../patterns/pure-ruby/base"
+    @grok.add_patterns_from_file(path)
+    @grok.compile("%{foo=%{IP} %{BASE10NUM:fizz}}")
+    match = @grok.match("1.2.3.4 300.4425")
+    p match.captures
+    assert_equal(3, match.captures.length)
+    assert(match.captures.include?("foo"))
+    assert(match.captures.include?("IP"))
+    assert(match.captures.include?("BASE10NUM:fizz"))
+  end
+                
+
   def test_valid_capture_subnames
     name = "foo"
     @grok.add_pattern(name, "\\w+")
