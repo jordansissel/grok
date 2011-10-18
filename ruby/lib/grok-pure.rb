@@ -1,12 +1,15 @@
 require "rubygems"
+require "logger"
+require "cabin"
 
 # TODO(sissel): Check if 'grok' c-ext has been loaded and abort?
 class Grok
   attr_accessor :pattern
   attr_accessor :expanded_pattern
+  attr_accessor :logger
   
   PATTERN_RE = \
-    /%{    # match '%{' not prefixed with '\'
+    /%\{    # match '%{' not prefixed with '\'
        (?<name>     # match the pattern name
          (?<pattern>[A-z0-9]+)
          (?::(?<subname>[A-z0-9_:]+))?
@@ -19,7 +22,7 @@ class Grok
          )+
        ))?
        [^}]*
-     }/x
+     \}/x
 
   GROK_OK = 0
   GROK_ERROR_FILE_NOT_ACCESSIBLE = 1
@@ -33,13 +36,15 @@ class Grok
   public
   def initialize
     @patterns = {}
+    @logger = Cabin::Channel.new
+    @logger.subscribe(Logger.new(STDOUT))
 
     # TODO(sissel): Throw exception if we aren't using Ruby 1.9.2 or newer.
   end # def initialize
 
   public
   def add_pattern(name, pattern)
-    #puts "#{name} => #{pattern}"
+    @logger.info("Adding pattern", name => pattern)
     @patterns[name] = pattern
     return nil
   end
@@ -49,7 +54,6 @@ class Grok
     file = File.new(path, "r")
     file.each do |line|
       next if line =~ /^\s*#/
-      #puts "Pattern: #{line}"
       name, pattern = line.gsub(/^\s*/, "").split(/\s+/, 2)
       next if pattern.nil?
       add_pattern(name, pattern.chomp)
@@ -96,6 +100,8 @@ class Grok
     end
 
     @regexp = Regexp.new(@expanded_pattern)
+    @logger.debug("Grok compiled OK", :pattern => pattern,
+                  :expanded_pattern => @expanded_pattern)
   end # def compile
 
   public
@@ -108,6 +114,7 @@ class Grok
       grokmatch.start, grokmatch.end = match.offset(0)
       grokmatch.grok = self
       grokmatch.match = match
+      @logger.debug("Regexp match object", :names => match.names, :captures => match.captures)
       return grokmatch
     else
       return false

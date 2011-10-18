@@ -1,4 +1,6 @@
 require "grok-pure"
+require "logger"
+require "cabin"
 
 # A grok pile is an easy way to have multiple patterns together so
 # that you can try to match against each one.
@@ -7,11 +9,20 @@ require "grok-pure"
 # try each one until a match is found.
 class Grok
   class Pile
+    attr_accessor :logger
+
     def initialize
       @groks = []
       @patterns = {}
       @pattern_files = []
+      @logger = Cabin::Channel.new
+      @logger.subscribe(Logger.new(STDOUT))
     end # def initialize
+
+    def logger=(logger)
+      @logger = logger
+      @groks.each { |g| g.logger = logger }
+    end
 
     # see Grok#add_pattern
     def add_pattern(name, string)
@@ -29,6 +40,7 @@ class Grok
     # see Grok#compile
     def compile(pattern)
       grok = Grok.new
+      grok.logger = @logger unless @logger.nil?
       @patterns.each do |name, value|
         grok.add_pattern(name, value)
       end
@@ -36,6 +48,8 @@ class Grok
         grok.add_patterns_from_file(path)
       end
       grok.compile(pattern)
+      @logger.info("Pile compiled new grok", :pattern => pattern,
+                   :expanded_pattern => grok.expanded_pattern)
       @groks << grok
     end # def compile
 
