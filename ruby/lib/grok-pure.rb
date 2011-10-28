@@ -38,6 +38,7 @@ class Grok
     @patterns = {}
     @logger = Cabin::Channel.new
     @logger.subscribe(Logger.new(STDOUT))
+    @logger.level = :warn
 
     # TODO(sissel): Throw exception if we aren't using Ruby 1.9.2 or newer.
   end # def initialize

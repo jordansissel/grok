@@ -17,12 +17,13 @@ class Grok
       @pattern_files = []
       @logger = Cabin::Channel.new
       @logger.subscribe(Logger.new(STDOUT))
+      @logger.level = :warn
     end # def initialize
 
     def logger=(logger)
       @logger = logger
       @groks.each { |g| g.logger = logger }
-    end
+    end # def logger=
 
     # see Grok#add_pattern
     def add_pattern(name, string)
