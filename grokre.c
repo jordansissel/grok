@@ -190,7 +190,7 @@ static char *grok_pattern_expand(grok_t *grok) {
              full_len, full_pattern);
 
     replacement_count++;
-    if (replacement_count > 500) {
+    if (replacement_count > 1000) {
       free(capture_vector);
       free(full_pattern);
       grok->errstr = "Too many replacements have occurred (500), infinite recursion?";
