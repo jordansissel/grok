@@ -178,7 +178,11 @@ endif
 
 libgrok.$(LIBSUFFIX): 
 libgrok.$(LIBSUFFIX): $(GROKOBJ) 
+ifeq ($(UBUNTU_VERSION), 11.10)
+	$(CC) -fPIC $(DYNLIBFLAG) $(LIBNAMEFLAG) $^ -o $@ $(LDFLAGS)
+else
 	$(CC) $(LDFLAGS) -fPIC $(DYNLIBFLAG) $(LIBNAMEFLAG) $^ -o $@
+endif
 
 libgrok.$(VERLIBSUFFIX): libgrok.$(LIBSUFFIX);
 	ln -s $< $@
