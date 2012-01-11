@@ -29,6 +29,7 @@ endif
 # On FreeBSD, comment this line out.
 ifeq ($(PLATFORM), GNULinux)
 LDFLAGS+=-ldl
+UBUNTU_VERSION=$(shell sh $(BASE)/ubuntu-version.sh)
 endif
 
 # #############################################
@@ -162,10 +163,18 @@ cleanver:
 # Binary creation
 grok: LDFLAGS+=-levent
 grok: $(GROKOBJ) conf.tab.o conf.yy.o main.o grok_config.o
+ifeq ($(UBUNTU_VERSION), 11.10)
+	$(CC) $^ -o $@ $(LDFLAGS)
+else
 	$(CC) $(LDFLAGS) $^ -o $@
+endif
 
 discogrok: $(GROKOBJ) discover_main.o
+ifeq ($(UBUNTU_VERSION), 11.10)
+	$(CC) $^ -o $@ $(LDFLAGS)
+else
 	$(CC) $(LDFLAGS) $^ -o $@
+endif
 
 libgrok.$(LIBSUFFIX): 
 libgrok.$(LIBSUFFIX): $(GROKOBJ) 
