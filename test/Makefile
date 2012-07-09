@@ -7,6 +7,7 @@ LDFLAGS+=-lcunit -levent
 CFLAGS+=-I. -I.. -g $(EXTRA_CFLAGS)
 CLEANOBJ=*.o *.gentest.c *_xdr.[hco] _*.c
 CLEANBIN=*.test
+UBUNTU_VERSION=$(shell sh $(BASE)/ubuntu-version.sh)
 
 TESTS=$(wildcard *.test.c)
 #TESTS=grok_pattern.test.c grok_capture.test.c grok_simple.test.c 
@@ -43,5 +44,9 @@ grok_manymanymany.test: $(GROKOBJ)
 predicates.test: $(GROKOBJ)
 
 %.test: %.test.o 
+ifeq ($(UBUNTU_VERSION), 11.10)
+	$(CC)  $(CFLAGS) $(^:cleanobj=) -o $@ $(LDFLAGS)
+else
 	$(CC) $(LDFLAGS) $(CFLAGS) $(^:cleanobj=) -o $@
+endif
 
