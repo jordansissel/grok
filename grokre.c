@@ -173,8 +173,8 @@ static char *grok_pattern_expand(grok_t *grok) {
   capture_vector = calloc(3 * g_pattern_num_captures, sizeof(int));
   full_len = grok->pattern_len;
   full_size = full_len;
-  full_pattern = calloc(1, full_size);
-  memcpy(full_pattern, grok->pattern, full_len);
+  full_pattern = calloc(1, full_size + 1);
+  memcpy(full_pattern, grok->pattern, full_len + 1);
   grok_log(grok, LOG_REGEXPAND, "% 20s: %.*s", "start of expand",
            full_len, full_pattern);
 
