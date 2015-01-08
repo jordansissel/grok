@@ -12,8 +12,8 @@
 
 /* global, static variables */
 
-#define CAPTURE_ID_LEN 4
-#define CAPTURE_FORMAT "%04x"
+#define CAPTURE_ID_LEN 5
+#define CAPTURE_FORMAT "_%04x"
 
 /* internal functions */
 static char *grok_pattern_expand(grok_t *grok); //, int offset, int length);
