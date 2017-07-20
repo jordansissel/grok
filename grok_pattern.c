@@ -49,6 +49,10 @@ int grok_pattern_find(const grok_t *grok, const char *name, size_t name_len,
   return GROK_OK;
 }
 
+bool grok_pattern_delete(const grok_t *grok, const char *name, size_t name_len) {
+  return tctreeout(grok->patterns, name, name_len);
+}
+
 int grok_patterns_import_from_file(const grok_t *grok, const char *filename) {
   FILE *patfile = NULL;
   size_t filesize = 0;
