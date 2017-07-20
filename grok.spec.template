@@ -2,7 +2,7 @@
 
 Summary: A powerful pattern matching system for parsing and processing text
 Name: grok
-Version: 1.20110308.1
+Version: 1.20110708.1
 Release: 1
 Group: System Environment/Utilities
 License: BSD
@@ -65,6 +65,7 @@ done
 /sbin/ldconfig
 
 %changelog
+* Sat Dec  5 2015 Peter Portante <pportant@redhat.com> 1.20110708.1-1
 * Tue Mar  8 2011 Jordan Sissel <jls@semicomplete.com> 1.20110308.1-1
 * Mon Oct 19 2009 Pete Fritchman <petef@databits.net> 20090928-1
 - Initial packaging.
