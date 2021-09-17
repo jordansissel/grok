@@ -59,6 +59,10 @@ int grok_match_walk_next(const grok_match_t *gm,
   end = (gm->grok->pcre_capture_vector[gct->pcre_capture_number * 2 + 1]);
   grok_log(gm->grok, LOG_MATCH, "CaptureWalk '%.*s' is %d -> %d of string '%s'",
            *namelen, *name, start, end, gm->subject);
+  if ( end > 0 && end > strlen(gm->subject) ) {
+    grok_log(gm->grok, LOG_MATCH, "Match end (%d) is larger than string length (%d)! Thanks libpcre. '-1'ing bounds.", end, strlen(gm->subject) );
+    start = -1; end = -1;
+  }
   *substr = gm->subject + start;
   *substrlen = (end - start);
 
