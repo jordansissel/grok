@@ -128,7 +128,7 @@ match_block: match_block match_block_statement
            | match_block_statement
 
 match_block_statement: /* empty */
-           | "pattern" ':' QUOTEDSTRING { conf_new_match_pattern(conf, $3) }
+           | "pattern" ':' QUOTEDSTRING { conf_new_match_pattern(conf, $3); }
            | "reaction" ':' QUOTEDSTRING { CURMATCH.reaction = $3; }
            | "reaction" ':' "none" { CURMATCH.no_reaction = 1; }
            | "shell" ':' QUOTEDSTRING { CURMATCH.shell = $3; }
