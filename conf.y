@@ -12,6 +12,8 @@ void yyerror (YYLTYPE *loc, struct config *conf, char const *s) {
   fprintf (stderr, "Syntax error: %s\n", s);
 }
 
+int yylex (YYSTYPE *lvalp, YYLTYPE *llocp);
+
 #define DEBUGMASK(val) ((val > 0) ? ~0 : 0)
 %}
 
