@@ -1,7 +1,7 @@
 %{
 #include <string.h>
-#include "conf.tab.h"
 #include "grok_config.h"
+#include "conf.tab.h"
 #include "stringhelper.h"
 %}
 
